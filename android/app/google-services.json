@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "628372198409",
+    "firebase_url": "https://sports-69e48-default-rtdb.firebaseio.com",
+    "project_id": "sports-69e48",
+    "storage_bucket": "sports-69e48.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628372198409:android:fa4bddc7e8daaf790994d8",
+        "android_client_info": {
+          "package_name": "com.example.sri_lanka_sports_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1WFdzMDEaJ1jjn3CIdcZwza0xb6t-A7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
