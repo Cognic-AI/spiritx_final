@@ -8,7 +8,7 @@ import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
+
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: AppTheme.primaryColor,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // App name
                   const Text(
                     'Sri Lanka Sports',
@@ -91,7 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Tagline
                   Text(
                     'Sign in to discover your potential',
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 48),
-                  
+
                   // Error message
                   if (_errorMessage != null) ...[
                     Container(
@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 24),
                   ],
-                  
+
                   // Email field
                   CustomTextField(
                     controller: _emailController,
@@ -131,14 +131,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value)) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Password field
                   CustomTextField(
                     controller: _passwordController,
@@ -156,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Login button
                   CustomButton(
                     text: 'Sign In',
@@ -164,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _login,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -178,7 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const RegisterScreen()),
                           );
                         },
                         child: Text(

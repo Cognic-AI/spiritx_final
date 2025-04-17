@@ -26,8 +26,6 @@ A comprehensive mobile application designed to support talented individuals in s
 
 - Authentication for user management
 - Firestore for database
-- Storage for image uploads
-
 
 
 - **OpenStreetMap**: Free map integration via flutter_map package
@@ -72,7 +70,7 @@ flutter pub get
 
 
 
-4. Enable Authentication, Firestore, and Storage in Firebase Console
+4. Enable Authentication, and Firestore in Firebase Console
 
 
 

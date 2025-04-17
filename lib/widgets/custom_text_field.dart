@@ -16,7 +16,7 @@ class CustomTextField extends StatefulWidget {
   final bool enabled;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.controller,
     this.labelText,
     this.hintText,
@@ -29,7 +29,7 @@ class CustomTextField extends StatefulWidget {
     this.onSuffixIconPressed,
     this.maxLines = 1,
     this.enabled = true,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();

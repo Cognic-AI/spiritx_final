@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sri_lanka_sports_app/models/education_model.dart';
+import 'package:sri_lanka_sports_app/repositories/education_repository.dart';
+import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class EducationScreen extends StatefulWidget {
-  const EducationScreen({super.key});
+  const EducationScreen({Key? key}) : super(key: key);
 
   @override
   State<EducationScreen> createState() => _EducationScreenState();
@@ -11,70 +15,49 @@ class EducationScreen extends StatefulWidget {
 class _EducationScreenState extends State<EducationScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final EducationRepository _educationRepository = EducationRepository();
 
-  final List<Map<String, dynamic>> _techniques = [
-    {
-      'id': '1',
-      'title': 'Perfect Cricket Bowling Technique',
-      'sport': 'Cricket',
-      'level': 'Intermediate',
-      'description':
-          'Learn the perfect bowling technique for cricket, including grip, run-up, and release.',
-      'image': 'cricket_bowling.jpg',
-    },
-    {
-      'id': '2',
-      'title': 'Football Free Kick Mastery',
-      'sport': 'Football',
-      'level': 'Advanced',
-      'description':
-          'Master the art of taking free kicks in football with proper technique and practice.',
-      'image': 'football_freekick.jpg',
-    },
-    {
-      'id': '3',
-      'title': 'Swimming Freestyle Technique',
-      'sport': 'Swimming',
-      'level': 'Beginner',
-      'description':
-          'Learn the proper freestyle swimming technique for efficiency and speed in the water.',
-      'image': 'swimming_freestyle.jpg',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _science = [
-    {
-      'id': '1',
-      'title': 'The Physics of Cricket Ball Swing',
-      'category': 'Physics',
-      'description': '1',
-    },
-    {
-      'id': '2',
-      'title': 'Muscle Recovery and Growth in Sports',
-      'category': 'Biology',
-      'description':
-          'Learn about the biological processes of muscle recovery and growth after training, and how to optimize these processes.',
-    },
-    {
-      'id': '3',
-      'title': 'Nutrition Science for Athletes',
-      'category': 'Nutrition',
-      'description':
-          'Explore the science of nutrition for athletes, including macronutrients, micronutrients, and timing of meals for optimal performance.',
-    },
-  ];
+  bool _isLoading = true;
+  List<EducationModel> _techniques = [];
+  List<EducationModel> _scienceArticles = [];
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadEducationalContent();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadEducationalContent() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // Load techniques and science articles
+      final techniques = await _educationRepository.getTechniques();
+      final scienceArticles = await _educationRepository.getScienceArticles();
+
+      setState(() {
+        _techniques = techniques;
+        _scienceArticles = scienceArticles;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading educational content: $e');
+      setState(() {
+        _errorMessage = 'Failed to load content. Please try again.';
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -89,18 +72,52 @@ class _EducationScreenState extends State<EducationScreen>
             Tab(text: 'Science'),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildTechniquesTab(),
-          _buildScienceTab(),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              // Show search dialog
+              _showSearchDialog();
+            },
+          ),
         ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadEducationalContent,
+                        child: const Text('Try Again'),
+                      ),
+                    ],
+                  ),
+                )
+              : TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildTechniquesTab(),
+                    _buildScienceTab(),
+                  ],
+                ),
     );
   }
 
   Widget _buildTechniquesTab() {
+    if (_techniques.isEmpty) {
+      return const Center(
+        child: Text('No techniques available'),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: _techniques.length,
@@ -116,16 +133,40 @@ class _EducationScreenState extends State<EducationScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Technique image
-                Container(
-                  height: 180,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  child: Icon(
-                    _getSportIcon(technique['sport']),
-                    size: 64,
-                    color: Colors.grey[600],
+                if (technique.imageUrl != null)
+                  ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(4)),
+                    child: Image.network(
+                      technique.imageUrl!,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 180,
+                          width: double.infinity,
+                          color: Colors.grey[300],
+                          child: Icon(
+                            _getSportIcon(technique.sport ?? ''),
+                            size: 64,
+                            color: Colors.grey[600],
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                else
+                  Container(
+                    height: 180,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: Icon(
+                      _getSportIcon(technique.sport ?? ''),
+                      size: 64,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -134,44 +175,46 @@ class _EducationScreenState extends State<EducationScreen>
                       // Sport and level
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              technique['sport'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
+                          if (technique.sport != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                technique.sport!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: _getLevelColor(technique['level']),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              technique['level'],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
+                          if (technique.sport != null) const SizedBox(width: 8),
+                          if (technique.level != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: _getLevelColor(technique.level!),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                technique.level!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
 
                       // Title
                       Text(
-                        technique['title'],
+                        technique.title,
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -181,7 +224,7 @@ class _EducationScreenState extends State<EducationScreen>
 
                       // Description
                       Text(
-                        technique['description'],
+                        technique.description,
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
@@ -210,11 +253,17 @@ class _EducationScreenState extends State<EducationScreen>
   }
 
   Widget _buildScienceTab() {
+    if (_scienceArticles.isEmpty) {
+      return const Center(
+        child: Text('No science articles available'),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: _science.length,
+      itemCount: _scienceArticles.length,
       itemBuilder: (context, index) {
-        final science = _science[index];
+        final science = _scienceArticles[index];
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
           child: InkWell(
@@ -227,26 +276,27 @@ class _EducationScreenState extends State<EducationScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _getCategoryColor(science['category']),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      science['category'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                  if (science.category != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getCategoryColor(science.category!),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        science.category!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 8),
 
                   // Title
                   Text(
-                    science['title'],
+                    science.title,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -256,11 +306,42 @@ class _EducationScreenState extends State<EducationScreen>
 
                   // Description
                   Text(
-                    science['description'],
+                    science.description,
                     style: TextStyle(
                       color: Theme.of(context).textTheme.bodyMedium?.color,
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Author and date
+                  if (science.author != null || science.publishDate != null)
+                    Row(
+                      children: [
+                        if (science.author != null)
+                          Text(
+                            science.author!,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        if (science.author != null &&
+                            science.publishDate != null)
+                          Text(
+                            ' • ',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        if (science.publishDate != null)
+                          Text(
+                            _formatDate(science.publishDate!),
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                      ],
+                    ),
                   const SizedBox(height: 16),
 
                   // Read more button
@@ -282,7 +363,14 @@ class _EducationScreenState extends State<EducationScreen>
     );
   }
 
-  void _navigateToTechniqueDetail(Map<String, dynamic> technique) {
+  void _navigateToTechniqueDetail(EducationModel technique) {
+    // Track content view
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.currentUser != null) {
+      _educationRepository.trackContentView(
+          technique.id, authService.currentUser!.uid);
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -291,13 +379,105 @@ class _EducationScreenState extends State<EducationScreen>
     );
   }
 
-  void _navigateToScienceDetail(Map<String, dynamic> science) {
+  void _navigateToScienceDetail(EducationModel science) {
+    // Track content view
+    final authService = Provider.of<AuthService>(context, listen: false);
+    if (authService.currentUser != null) {
+      _educationRepository.trackContentView(
+          science.id, authService.currentUser!.uid);
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => ScienceDetailScreen(science: science),
       ),
     );
+  }
+
+  void _showSearchDialog() {
+    final searchController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Search Educational Content'),
+          content: TextField(
+            controller: searchController,
+            decoration: const InputDecoration(
+              hintText: 'Enter search term',
+              prefixIcon: Icon(Icons.search),
+            ),
+            onSubmitted: (value) {
+              Navigator.pop(context);
+              if (value.isNotEmpty) {
+                _searchEducationalContent(value);
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                if (searchController.text.isNotEmpty) {
+                  _searchEducationalContent(searchController.text);
+                }
+              },
+              child: const Text('Search'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _searchEducationalContent(String query) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final results =
+          await _educationRepository.searchEducationalContent(query);
+
+      // Split results into techniques and science articles
+      final techniques =
+          results.where((item) => item.type == 'technique').toList();
+      final scienceArticles =
+          results.where((item) => item.type == 'science').toList();
+
+      setState(() {
+        _techniques = techniques;
+        _scienceArticles = scienceArticles;
+        _isLoading = false;
+      });
+
+      // Show search results message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Found ${results.length} results for "$query"'),
+        ),
+      );
+    } catch (e) {
+      print('Error searching educational content: $e');
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error searching content. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   IconData _getSportIcon(String sport) {
@@ -340,37 +520,76 @@ class _EducationScreenState extends State<EducationScreen>
         return Colors.purple;
     }
   }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
 }
 
 class TechniqueDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> technique;
+  final EducationModel technique;
 
   const TechniqueDetailScreen({
-    super.key,
+    Key? key,
     required this.technique,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(technique['title']),
+        title: Text(technique.title),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Technique image
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.grey[300],
-              child: Icon(
-                _getSportIcon(technique['sport']),
-                size: 64,
-                color: Colors.grey[600],
+            if (technique.imageUrl != null)
+              Image.network(
+                technique.imageUrl!,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    width: double.infinity,
+                    color: Colors.grey[300],
+                    child: Icon(
+                      _getSportIcon(technique.sport ?? ''),
+                      size: 64,
+                      color: Colors.grey[600],
+                    ),
+                  );
+                },
+              )
+            else
+              Container(
+                height: 200,
+                width: double.infinity,
+                color: Colors.grey[300],
+                child: Icon(
+                  _getSportIcon(technique.sport ?? ''),
+                  size: 64,
+                  color: Colors.grey[600],
+                ),
               ),
-            ),
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -379,44 +598,47 @@ class TechniqueDetailScreen extends StatelessWidget {
                   // Sport and level
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          technique['sport'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+                      if (technique.sport != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            technique.sport!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getLevelColor(technique['level']),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          technique['level'],
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
+                      if (technique.sport != null && technique.level != null)
+                        const SizedBox(width: 8),
+                      if (technique.level != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _getLevelColor(technique.level!),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            technique.level!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
 
                   // Title
                   Text(
-                    technique['title'],
+                    technique.title,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -426,7 +648,7 @@ class TechniqueDetailScreen extends StatelessWidget {
 
                   // Description
                   Text(
-                    technique['description'],
+                    technique.description,
                     style: TextStyle(
                       fontSize: 16,
                       color: Theme.of(context).textTheme.bodyMedium?.color,
@@ -434,73 +656,62 @@ class TechniqueDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Detailed content (sample)
-                  const Text(
-                    'Step-by-Step Guide',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  // Detailed content
+                  if (technique.content != null)
+                    Text(
+                      technique.content!,
+                      style: const TextStyle(fontSize: 16),
                     ),
-                  ),
-                  const SizedBox(height: 16),
 
-                  _buildStep(1, 'Preparation',
-                      'Start with the proper stance and grip. Make sure your body is aligned correctly.'),
-                  _buildStep(2, 'Execution',
-                      'Execute the technique with proper form, focusing on the key movements.'),
-                  _buildStep(3, 'Follow Through',
-                      'Complete the motion with a proper follow-through to maximize effectiveness.'),
-                  _buildStep(4, 'Practice',
-                      'Repeat the technique regularly to build muscle memory and improve performance.'),
-
-                  const SizedBox(height: 24),
-
-                  // Video section (placeholder)
-                  const Text(
-                    'Video Tutorial',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(
-                        Icons.play_circle_fill,
-                        size: 64,
-                        color: Colors.white,
+                  // Steps
+                  if (technique.steps != null &&
+                      technique.steps!.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Step-by-Step Guide',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    ...technique.steps!.map((step) => _buildStep(step)),
+                  ],
 
-                  // Science behind section
-                  const Text(
-                    'The Science Behind',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                  // Video
+                  if (technique.videoUrl != null) ...[
+                    const SizedBox(height: 24),
+                    const Text(
+                      'Video Tutorial',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  const Text(
-                    'Understanding the physics and biomechanics behind this technique can help you master it more effectively. The movement involves specific muscle groups and leverages physical principles to achieve optimal results.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-
-                  OutlinedButton(
-                    onPressed: () {
-                      // Navigate to science article
-                    },
-                    child: const Text('Read More About The Science'),
-                  ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(
+                          Icons.play_circle_fill,
+                          size: 64,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Center(
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('Play Video'),
+                        onPressed: () {
+                          // Play video
+                        },
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -510,7 +721,7 @@ class TechniqueDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStep(int number, String title, String description) {
+  Widget _buildStep(StepModel step) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -525,7 +736,7 @@ class TechniqueDetailScreen extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                number.toString(),
+                step.number.toString(),
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -539,7 +750,7 @@ class TechniqueDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  step.title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -547,9 +758,26 @@ class TechniqueDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  step.description,
                   style: const TextStyle(fontSize: 16),
                 ),
+                if (step.imageUrl != null) ...[
+                  const SizedBox(height: 8),
+                  Image.network(
+                    step.imageUrl!,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 120,
+                        color: Colors.grey[200],
+                        child: const Center(
+                          child: Icon(Icons.image_not_supported),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           ),
@@ -588,7 +816,7 @@ class TechniqueDetailScreen extends StatelessWidget {
 }
 
 class ScienceDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> science;
+  final EducationModel science;
 
   const ScienceDetailScreen({
     Key? key,
@@ -599,7 +827,7 @@ class ScienceDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(science['title']),
+        title: Text(science.title),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -607,25 +835,26 @@ class ScienceDetailScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Category
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _getCategoryColor(science['category']),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                science['category'],
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
+            if (science.category != null)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _getCategoryColor(science.category!),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  science.category!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: 16),
 
             // Title
             Text(
-              science['title'],
+              science.title,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -636,7 +865,7 @@ class ScienceDetailScreen extends StatelessWidget {
             // Author and date
             Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 16,
                   backgroundColor: Colors.grey,
                   child: Icon(
@@ -647,7 +876,9 @@ class ScienceDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Dr. Sports Science • April 15, 2023',
+                  science.author != null
+                      ? '${science.author} • ${_formatDate(science.publishDate ?? DateTime.now())}'
+                      : _formatDate(science.publishDate ?? DateTime.now()),
                   style: TextStyle(
                     color: Colors.grey[600],
                   ),
@@ -656,168 +887,44 @@ class ScienceDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Article content (sample)
-            const Text(
-              'Introduction',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+            // Content
+            if (science.content != null)
+              Text(
+                science.content!,
+                style: const TextStyle(fontSize: 16),
+              )
+            else
+              Text(
+                science.description,
+                style: const TextStyle(fontSize: 16),
               ),
-            ),
-            const SizedBox(height: 16),
 
-            Text(
-              science['description'],
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'This article explores the scientific principles behind sports performance and how understanding these principles can help athletes improve their skills and achieve better results.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-
-            // Main content sections
-            const Text(
-              'Key Principles',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'The scientific principles that govern sports performance are based on physics, biology, and biomechanics. Understanding these principles allows athletes to optimize their technique and training methods.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-
-            // Illustration (placeholder)
-            Container(
-              height: 200,
-              width: double.infinity,
-              color: Colors.grey[300],
-              child: Center(
-                child: Icon(
-                  _getCategoryIcon(science['category']),
-                  size: 64,
-                  color: Colors.grey[600],
+            // Tags
+            if (science.tags != null && science.tags!.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              const Text(
+                'Tags',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Figure 1: Illustration of the scientific principle in action',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: Colors.grey,
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: science.tags!.map((tag) {
+                  return Chip(
+                    label: Text(tag),
+                    backgroundColor: Colors.grey[200],
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 24),
-
-            const Text(
-              'Practical Applications',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Athletes can apply these scientific principles in their training and competition to improve performance. Here are some practical applications:',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-
-            _buildBulletPoint(
-                'Adjust technique based on scientific principles'),
-            _buildBulletPoint('Optimize training methods for better results'),
-            _buildBulletPoint(
-                'Use technology to measure and analyze performance'),
-            _buildBulletPoint('Apply scientific knowledge to prevent injuries'),
-
-            const SizedBox(height: 24),
-
-            // Conclusion
-            const Text(
-              'Conclusion',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            const Text(
-              'Understanding the science behind sports can significantly improve performance and help athletes reach their full potential. By applying scientific principles to training and technique, athletes can gain a competitive edge and achieve better results.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-
-            // References
-            const Text(
-              'References',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            _buildReference(
-                'Smith, J. (2022). The Science of Sports Performance. Sports Science Journal, 45(2), 112-125.'),
-            _buildReference(
-                'Johnson, A. & Williams, B. (2021). Biomechanics in Athletic Performance. Sports Medicine, 33(4), 78-92.'),
-            _buildReference(
-                'Brown, C. (2023). Physics Principles in Sports. International Journal of Sports Science, 12(1), 45-58.'),
+            ],
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildBulletPoint(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Expanded(
-            child: Text(text, style: const TextStyle(fontSize: 16)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReference(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic),
-      ),
-    );
-  }
-
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'physics':
-        return Icons.science;
-      case 'biology':
-        return Icons.biotech;
-      case 'nutrition':
-        return Icons.restaurant;
-      default:
-        return Icons.book;
-    }
   }
 
   Color _getCategoryColor(String category) {
@@ -831,5 +938,24 @@ class ScienceDetailScreen extends StatelessWidget {
       default:
         return Colors.purple;
     }
+  }
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }

@@ -7,6 +7,13 @@ class UserModel {
   final String? profileImageUrl;
   final List<String>? interests;
   final List<String>? favoriteEquipmentSites;
+  final bool isVerified;
+  final String? phone;
+  final String? address;
+  final String? dateOfBirth;
+  final int? height;
+  final int? weight;
+  final String? emergencyContact;
 
   UserModel({
     required this.uid,
@@ -17,6 +24,13 @@ class UserModel {
     this.profileImageUrl,
     this.interests,
     this.favoriteEquipmentSites,
+    this.isVerified = false,
+    this.phone,
+    this.address,
+    this.dateOfBirth,
+    this.height,
+    this.weight,
+    this.emergencyContact,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -27,12 +41,19 @@ class UserModel {
       role: json['role'] ?? 'student',
       nicNumber: json['nicNumber'],
       profileImageUrl: json['profileImageUrl'],
-      interests: json['interests'] != null 
-          ? List<String>.from(json['interests']) 
+      interests: json['interests'] != null
+          ? List<String>.from(json['interests'])
           : null,
-      favoriteEquipmentSites: json['favoriteEquipmentSites'] != null 
-          ? List<String>.from(json['favoriteEquipmentSites']) 
+      favoriteEquipmentSites: json['favoriteEquipmentSites'] != null
+          ? List<String>.from(json['favoriteEquipmentSites'])
           : null,
+      isVerified: json['isVerified'] ?? false,
+      phone: json['phone'],
+      address: json['address'],
+      dateOfBirth: json['dateOfBirth'],
+      height: json['height'],
+      weight: json['weight'],
+      emergencyContact: json['emergencyContact'],
     );
   }
 
@@ -46,6 +67,13 @@ class UserModel {
       'profileImageUrl': profileImageUrl,
       'interests': interests,
       'favoriteEquipmentSites': favoriteEquipmentSites,
+      'isVerified': isVerified,
+      'phone': phone,
+      'address': address,
+      'dateOfBirth': dateOfBirth,
+      'height': height,
+      'weight': weight,
+      'emergencyContact': emergencyContact,
     };
   }
 
@@ -58,6 +86,13 @@ class UserModel {
     String? profileImageUrl,
     List<String>? interests,
     List<String>? favoriteEquipmentSites,
+    bool? isVerified,
+    String? phone,
+    String? address,
+    String? dateOfBirth,
+    int? height,
+    int? weight,
+    String? emergencyContact,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -67,7 +102,15 @@ class UserModel {
       nicNumber: nicNumber ?? this.nicNumber,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       interests: interests ?? this.interests,
-      favoriteEquipmentSites: favoriteEquipmentSites ?? this.favoriteEquipmentSites,
+      favoriteEquipmentSites:
+          favoriteEquipmentSites ?? this.favoriteEquipmentSites,
+      isVerified: isVerified ?? this.isVerified,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+      height: height ?? this.height,
+      weight: weight ?? this.weight,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
     );
   }
 }

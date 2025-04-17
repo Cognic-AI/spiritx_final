@@ -5,17 +5,17 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF1E88E5);
   static const Color secondaryColor = Color(0xFF26A69A);
   static const Color accentColor = Color(0xFFFFB74D);
-  
+
   // Text colors
   static const Color textPrimaryLight = Color(0xFF212121);
   static const Color textSecondaryLight = Color(0xFF757575);
   static const Color textPrimaryDark = Color(0xFFFFFFFF);
   static const Color textSecondaryDark = Color(0xFFB0BEC5);
-  
+
   // Background colors
   static const Color backgroundLight = Color(0xFFFFFFFF);
   static const Color backgroundDark = Color(0xFF121212);
-  
+
   // Error colors
   static const Color errorColor = Color(0xFFE53935);
 
@@ -34,12 +34,18 @@ class AppTheme {
       elevation: 0,
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
-      headlineSmall: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+      displayLarge:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+      displayMedium:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+      displaySmall:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+      headlineMedium:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+      headlineSmall:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+      titleLarge:
+          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
       bodyLarge: TextStyle(color: textPrimaryLight),
       bodyMedium: TextStyle(color: textSecondaryLight),
     ),
@@ -68,7 +74,7 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      background: backgroundDark,
+      surface: backgroundDark,
     ),
     scaffoldBackgroundColor: backgroundDark,
     appBarTheme: const AppBarTheme(
@@ -77,12 +83,18 @@ class AppTheme {
       elevation: 0,
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
-      headlineSmall: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
+      displayLarge:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
+      displayMedium:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
+      displaySmall:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.bold),
+      headlineMedium:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
+      headlineSmall:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
+      titleLarge:
+          TextStyle(color: textPrimaryDark, fontWeight: FontWeight.w600),
       bodyLarge: TextStyle(color: textPrimaryDark),
       bodyMedium: TextStyle(color: textSecondaryDark),
     ),

@@ -10,19 +10,19 @@ class CustomButton extends StatelessWidget {
   final bool isOutlined;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
     this.icon,
     this.color,
     this.isOutlined = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final buttonColor = color ?? AppTheme.primaryColor;
-    
+
     if (isOutlined) {
       return OutlinedButton(
         onPressed: isLoading ? null : onPressed,
@@ -36,7 +36,7 @@ class CustomButton extends StatelessWidget {
         child: _buildButtonContent(buttonColor),
       );
     }
-    
+
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
@@ -49,7 +49,7 @@ class CustomButton extends StatelessWidget {
       child: _buildButtonContent(Colors.white),
     );
   }
-  
+
   Widget _buildButtonContent(Color textColor) {
     if (isLoading) {
       return SizedBox(
@@ -61,7 +61,7 @@ class CustomButton extends StatelessWidget {
         ),
       );
     }
-    
+
     if (icon != null) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -78,7 +78,7 @@ class CustomButton extends StatelessWidget {
         ],
       );
     }
-    
+
     return Text(
       text,
       style: TextStyle(

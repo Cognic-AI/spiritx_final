@@ -1,77 +1,122 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sri_lanka_sports_app/models/notification_model.dart';
+import 'package:sri_lanka_sports_app/repositories/notification_repository.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({Key? key}) : super(key: key);
+  const NotificationsScreen({super.key});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'id': '1',
-      'title': 'New Fund Raising Event',
-      'message': 'A new fund raising event for young cricket players has been announced. Check it out!',
-      'type': 'fundraising',
-      'isRead': false,
-      'timestamp': DateTime.now().subtract(const Duration(hours: 2)),
-    },
-    {
-      'id': '2',
-      'title': 'Upcoming Cricket Match',
-      'message': 'Sri Lanka vs. India cricket match scheduled for next week. Don\'t miss it!',
-      'type': 'match',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 1)),
-    },
-    {
-      'id': '3',
-      'title': 'New Training Program',
-      'message': 'A new training program for aspiring athletes has been launched at the National Sports Complex.',
-      'type': 'training',
-      'isRead': false,
-      'timestamp': DateTime.now().subtract(const Duration(days: 2)),
-    },
-    {
-      'id': '4',
-      'title': 'Sports Equipment Donation',
-      'message': 'Sports equipment donation drive for underprivileged athletes. Contribute now!',
-      'type': 'donation',
-      'isRead': true,
-      'timestamp': DateTime.now().subtract(const Duration(days: 3)),
-    },
-    {
-      'id': '5',
-      'title': 'Sports Science Workshop',
-      'message': 'Attend the upcoming sports science workshop to learn about the latest advancements in sports technology.',
-      'type': 'workshop',
-      'isRead': false,
-      'timestamp': DateTime.now().subtract(const Duration(days: 4)),
-    },
-  ];
+  final NotificationRepository _notificationRepository =
+      NotificationRepository();
 
-  void _markAsRead(String id) {
-    setState(() {
-      final index = _notifications.indexWhere((notification) => notification['id'] == id);
-      if (index != -1) {
-        _notifications[index]['isRead'] = true;
-      }
-    });
+  bool _isLoading = true;
+  List<NotificationModel> _notifications = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifications();
   }
 
-  void _deleteNotification(String id) {
+  Future<void> _loadNotifications() async {
     setState(() {
-      _notifications.removeWhere((notification) => notification['id'] == id);
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final notifications = await _notificationRepository.getAllNotifications();
+      print(notifications);
+      setState(() {
+        _notifications = notifications;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading notifications: $e');
+      setState(() {
+        _errorMessage = 'Failed to load notifications. Please try again.';
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _markAsRead(String id) async {
+    try {
+      await _notificationRepository.markNotificationAsRead(id);
+
+      setState(() {
+        final index =
+            _notifications.indexWhere((notification) => notification.id == id);
+        if (index != -1) {
+          _notifications[index] = _notifications[index].copyWith(isRead: true);
+        }
+      });
+    } catch (e) {
+      print('Error marking notification as read: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to mark notification as read'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _deleteNotification(String id) async {
+    try {
+      await _notificationRepository.deleteNotification(id);
+
+      setState(() {
+        _notifications.removeWhere((notification) => notification.id == id);
+      });
+    } catch (e) {
+      print('Error deleting notification: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete notification'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _markAllAsRead() async {
+    try {
+      await _notificationRepository.markAllNotificationsAsRead();
+
+      setState(() {
+        _notifications = _notifications
+            .map((notification) => notification.copyWith(isRead: true))
+            .toList();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('All notifications marked as read'),
+        ),
+      );
+    } catch (e) {
+      print('Error marking all notifications as read: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to mark all notifications as read'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inDays > 7) {
       return DateFormat('MMM d, yyyy').format(timestamp);
     } else if (difference.inDays > 0) {
@@ -127,119 +172,150 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.done_all),
-            onPressed: () {
-              setState(() {
-                for (var notification in _notifications) {
-                  notification['isRead'] = true;
-                }
-              });
-            },
+            onPressed: _markAllAsRead,
             tooltip: 'Mark all as read',
           ),
         ],
       ),
-      body: _notifications.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              itemCount: _notifications.length,
-              itemBuilder: (context, index) {
-                final notification = _notifications[index];
-                return Dismissible(
-                  key: Key(notification['id']),
-                  background: Container(
-                    color: AppTheme.errorColor,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 16),
-                    child: const Icon(
-                      Icons.delete,
-                      color: Colors.white,
-                    ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadNotifications,
+                        child: const Text('Try Again'),
+                      ),
+                    ],
                   ),
-                  direction: DismissDirection.endToStart,
-                  onDismissed: (direction) {
-                    _deleteNotification(notification['id']);
-                  },
-                  child: Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    child: InkWell(
-                      onTap: () {
-                        _markAsRead(notification['id']);
-                        _showNotificationDetails(notification);
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Notification icon
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: _getNotificationColor(notification['type']).withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                _getNotificationIcon(notification['type']),
-                                color: _getNotificationColor(notification['type']),
+                )
+              : _notifications.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _loadNotifications,
+                      child: ListView.builder(
+                        itemCount: _notifications.length,
+                        itemBuilder: (context, index) {
+                          final notification = _notifications[index];
+                          return Dismissible(
+                            key: Key(notification.id),
+                            background: Container(
+                              color: AppTheme.errorColor,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 16),
+                              child: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            
-                            // Notification content
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (direction) {
+                              _deleteNotification(notification.id);
+                            },
+                            child: Card(
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: InkWell(
+                                onTap: () {
+                                  _markAsRead(notification.id);
+                                  _showNotificationDetails(notification);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Expanded(
-                                        child: Text(
-                                          notification['title'],
-                                          style: TextStyle(
-                                            fontWeight: notification['isRead'] ? FontWeight.normal : FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
+                                      // Notification icon
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: _getNotificationColor(
+                                                  notification.type)
+                                              .withOpacity(0.1),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          _getNotificationIcon(
+                                              notification.type),
+                                          color: _getNotificationColor(
+                                              notification.type),
                                         ),
                                       ),
-                                      if (!notification['isRead'])
-                                        Container(
-                                          width: 8,
-                                          height: 8,
-                                          decoration: BoxDecoration(
-                                            color: AppTheme.primaryColor,
-                                            shape: BoxShape.circle,
-                                          ),
+                                      const SizedBox(width: 16),
+
+                                      // Notification content
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    notification.title,
+                                                    style: TextStyle(
+                                                      fontWeight: notification
+                                                              .isRead
+                                                          ? FontWeight.normal
+                                                          : FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (!notification.isRead)
+                                                  Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          AppTheme.primaryColor,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              notification.message,
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium
+                                                    ?.color,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _formatTimestamp(
+                                                  notification.timestamp),
+                                              style: TextStyle(
+                                                color: Colors.grey[600],
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                         ),
+                                      ),
                                     ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    notification['message'],
-                                    style: TextStyle(
-                                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    _formatTimestamp(notification['timestamp']),
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
     );
   }
 
@@ -274,7 +350,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  void _showNotificationDetails(Map<String, dynamic> notification) {
+  void _showNotificationDetails(NotificationModel notification) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -293,18 +369,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _getNotificationColor(notification['type']).withOpacity(0.1),
+                      color: _getNotificationColor(notification.type)
+                          .withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      _getNotificationIcon(notification['type']),
-                      color: _getNotificationColor(notification['type']),
+                      _getNotificationIcon(notification.type),
+                      color: _getNotificationColor(notification.type),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
-                      notification['title'],
+                      notification.title,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -315,7 +392,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                _formatTimestamp(notification['timestamp']),
+                _formatTimestamp(notification.timestamp),
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontSize: 14,
@@ -323,23 +400,48 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                notification['message'],
+                notification.message,
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('View Details'),
+
+              // Action button if URL is available
+              if (notification.actionUrl != null)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // Open URL or navigate to screen
+                      _handleNotificationAction(notification);
+                    },
+                    child: const Text('View Details'),
+                  ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Close'),
+                  ),
                 ),
-              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _handleNotificationAction(NotificationModel notification) {
+    // In a real app, this would open the URL or navigate to a specific screen
+    // For now, just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening details for: ${notification.title}'),
+      ),
     );
   }
 }
