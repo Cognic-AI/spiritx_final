@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sri_lanka_sports_app/models/sport_model.dart';
+import 'package:sri_lanka_sports_app/repositories/sport_repository.dart';
+import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 
@@ -11,6 +15,7 @@ class SportFinderScreen extends StatefulWidget {
 
 class _SportFinderScreenState extends State<SportFinderScreen> {
   final _formKey = GlobalKey<FormState>();
+  final SportRepository _sportRepository = SportRepository();
 
   // Questionnaire responses
   int _height = 170;
@@ -23,7 +28,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
   final List<String> _selectedInterests = [];
 
   bool _isLoading = false;
-  List<Map<String, dynamic>>? _recommendedSports;
+  List<SportRecommendation>? _recommendedSports;
 
   final List<String> _interests = [
     'Running',
@@ -50,38 +55,23 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
     });
 
     try {
-      // In a real app, this would be a call to your Python ML backend
-      // For demo purposes, we'll simulate a response
-      await Future.delayed(const Duration(seconds: 2));
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final userId = authService.currentUser?.uid ?? 'anonymous';
 
-      // Simulated response from ML model
+      final recommendations = await _sportRepository.getRecommendations(
+        height: _height,
+        weight: _weight,
+        age: _age,
+        gender: _gender,
+        fitnessLevel: _fitnessLevel,
+        teamPreference: _teamPreference,
+        competitiveness: _competitiveness,
+        interests: _selectedInterests,
+        userId: userId,
+      );
+
       setState(() {
-        _recommendedSports = [
-          {
-            'name': 'Cricket',
-            'match': 95,
-            'description':
-                'Cricket is a bat-and-ball game played between two teams of eleven players on a field at the center of which is a 22-yard pitch with a wicket at each end.',
-            'skills': ['Hand-eye coordination', 'Endurance', 'Strategy'],
-            'icon': Icons.sports_cricket,
-          },
-          {
-            'name': 'Swimming',
-            'match': 88,
-            'description':
-                'Swimming is an individual or team racing sport that requires the use of one\'s entire body to move through water.',
-            'skills': ['Endurance', 'Flexibility', 'Strength'],
-            'icon': Icons.pool,
-          },
-          {
-            'name': 'Volleyball',
-            'match': 82,
-            'description':
-                'Volleyball is a team sport in which two teams of six players are separated by a net.',
-            'skills': ['Jumping', 'Teamwork', 'Hand-eye coordination'],
-            'icon': Icons.sports_volleyball,
-          },
-        ];
+        _recommendedSports = recommendations;
         _isLoading = false;
       });
     } catch (e) {
@@ -433,7 +423,9 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
             padding: const EdgeInsets.all(16),
             itemCount: _recommendedSports!.length,
             itemBuilder: (context, index) {
-              final sport = _recommendedSports![index];
+              final recommendation = _recommendedSports![index];
+              final sport = recommendation.sport;
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 16),
                 child: Padding(
@@ -450,7 +442,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
-                              sport['icon'] as IconData,
+                              _getSportIcon(sport.name),
                               size: 32,
                               color: AppTheme.primaryColor,
                             ),
@@ -461,7 +453,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  sport['name'] as String,
+                                  sport.name,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -469,7 +461,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${sport['match']}% Match',
+                                  '${recommendation.matchPercentage}% Match',
                                   style: TextStyle(
                                     color: AppTheme.secondaryColor,
                                     fontWeight: FontWeight.bold,
@@ -482,7 +474,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        sport['description'] as String,
+                        sport.description,
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodyMedium?.color,
                         ),
@@ -498,8 +490,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
-                        children:
-                            (sport['skills'] as List<String>).map((skill) {
+                        children: sport.skills.map((skill) {
                           return Chip(
                             label: Text(skill),
                             backgroundColor:
@@ -512,6 +503,7 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
                         text: 'Learn More',
                         onPressed: () {
                           // Navigate to sport details
+                          _navigateToSportDetails(sport);
                         },
                       ),
                     ],
@@ -534,5 +526,219 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
         ),
       ],
     );
+  }
+
+  void _navigateToSportDetails(SportModel sport) {
+    // Navigate to sport details screen
+    // This would be implemented in a real app
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SportDetailScreen(sport: sport),
+      ),
+    );
+  }
+
+  IconData _getSportIcon(String sportName) {
+    switch (sportName.toLowerCase()) {
+      case 'cricket':
+        return Icons.sports_cricket;
+      case 'football':
+        return Icons.sports_soccer;
+      case 'swimming':
+        return Icons.pool;
+      case 'volleyball':
+        return Icons.sports_volleyball;
+      case 'basketball':
+        return Icons.sports_basketball;
+      case 'tennis':
+        return Icons.sports_tennis;
+      case 'running':
+        return Icons.directions_run;
+      default:
+        return Icons.sports;
+    }
+  }
+}
+
+// Sport Detail Screen
+class SportDetailScreen extends StatelessWidget {
+  final SportModel sport;
+
+  const SportDetailScreen({
+    super.key,
+    required this.sport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(sport.name),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Sport image
+            if (sport.imageUrl.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  sport.imageUrl,
+                  height: 200,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 200,
+                      width: double.infinity,
+                      color: Colors.grey[300],
+                      child: Icon(
+                        _getSportIcon(sport.name),
+                        size: 64,
+                        color: Colors.grey[600],
+                      ),
+                    );
+                  },
+                ),
+              )
+            else
+              Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  _getSportIcon(sport.name),
+                  size: 64,
+                  color: Colors.grey[600],
+                ),
+              ),
+            const SizedBox(height: 16),
+
+            // Sport name
+            Text(
+              sport.name,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Description
+            Text(
+              sport.description,
+              style: const TextStyle(
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Skills section
+            const Text(
+              'Key Skills',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Skills list
+            ...sport.skills.map((skill) => _buildSkillItem(skill)),
+
+            const SizedBox(height: 24),
+
+            // Attributes section
+            if (sport.attributes != null) ...[
+              const Text(
+                'Attributes',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Attributes list
+              ...sport.attributes!.entries.map(
+                (entry) =>
+                    _buildAttributeItem(entry.key, entry.value.toString()),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSkillItem(String skill) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            skill,
+            style: const TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttributeItem(String key, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: Colors.blue,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '$key: $value',
+            style: const TextStyle(
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getSportIcon(String sportName) {
+    switch (sportName.toLowerCase()) {
+      case 'cricket':
+        return Icons.sports_cricket;
+      case 'football':
+        return Icons.sports_soccer;
+      case 'swimming':
+        return Icons.pool;
+      case 'volleyball':
+        return Icons.sports_volleyball;
+      case 'basketball':
+        return Icons.sports_basketball;
+      case 'tennis':
+        return Icons.sports_tennis;
+      case 'running':
+        return Icons.directions_run;
+      default:
+        return Icons.sports;
+    }
   }
 }

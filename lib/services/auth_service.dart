@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:sri_lanka_sports_app/models/user_model.dart';
 import 'dart:convert';
-import 'package:image/image.dart' as img;
 
 class AuthService extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -18,6 +17,18 @@ class AuthService extends ChangeNotifier {
   UserModel? _userModel;
   UserModel? get userModel => _userModel;
 
+  // Constructor to initialize the service and listen for auth changes
+  AuthService() {
+    _auth.authStateChanges().listen((User? user) async {
+      if (user != null) {
+        await _fetchUserData(user.uid);
+      } else {
+        _userModel = null;
+        notifyListeners();
+      }
+    });
+  }
+
   // Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword(
       String email, String password) async {
@@ -28,14 +39,6 @@ class AuthService extends ChangeNotifier {
       );
       await _fetchUserData(result.user!.uid);
       return result;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> fetchData(String uid) async {
-    try {
-      await _fetchUserData(uid);
     } catch (e) {
       rethrow;
     }
@@ -58,10 +61,8 @@ class AuthService extends ChangeNotifier {
 
       String? nicImageUrl;
       if (nicImage != null && role == 'sportsperson') {
-        nicImageUrl = await _uploadNicImage(nicImage);
+        nicImageUrl = await _uploadNicImage(result.user!.uid, nicImage);
       }
-
-      // print('nicImageUrl: $nicImageUrl');
 
       UserModel newUser = UserModel(
         uid: result.user!.uid,
@@ -72,6 +73,8 @@ class AuthService extends ChangeNotifier {
         profileImageUrl: null,
         interests: [],
         favoriteEquipmentSites: [],
+        isVerified:
+            role != 'sportsperson', // Students are automatically verified
       );
 
       await _firestore
@@ -83,9 +86,12 @@ class AuthService extends ChangeNotifier {
         await _firestore.collection('verifications').doc(result.user!.uid).set({
           'uid': result.user!.uid,
           'nicNumber': nicNumber,
-          'nicImageUrl': nicImageUrl.toString(),
+          'nicImageUrl': nicImageUrl,
           'status': 'pending',
           'createdAt': FieldValue.serverTimestamp(),
+          'reviewedAt': null,
+          'reviewedBy': null,
+          'comments': null,
         });
       }
 
@@ -97,79 +103,100 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Upload NIC image
-
-  Future<String> _uploadNicImage(File imageFile) async {
+  // Upload NIC image to Firebase Storage
+  Future<String> _uploadNicImage(String uid, File image) async {
     try {
-      // 1. Read the file as bytes
-      final imageBytes = await imageFile.readAsBytes();
-
-      // 2. Decode the image (for compression)
-      final decodedImage = img.decodeImage(imageBytes);
-      if (decodedImage == null) {
-        throw Exception("Failed to decode the image");
-      }
-
-      // 3. Compress & resize the image (adjust as needed)
-      final compressedImage = img.copyResize(
-        decodedImage,
-        width: 800, // Resize to max 800px width (adjust as needed)
-      );
-      final compressedBytes = img.encodeJpg(compressedImage, quality: 85);
-
-      // 4. Convert compressed bytes to Base64
-      final base64Image = base64Encode(compressedBytes);
-
-      // 5. Return with MIME type prefix (for web display)
-      return 'data:image/jpeg;base64,$base64Image';
+      Reference ref = _storage.ref().child('nic_images').child('$uid.jpg');
+      UploadTask uploadTask = ref.putFile(image);
+      TaskSnapshot snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
     } catch (e) {
-      print("Error compressing/encoding image: $e");
-      throw e; // Re-throw to handle in the calling function
+      print('Error uploading NIC image: $e');
+
+      // Fallback to base64 encoding if Firebase Storage fails
+      try {
+        List<int> imageBytes = await image.readAsBytes();
+        String base64Image = base64Encode(imageBytes);
+        return 'data:image/jpeg;base64,$base64Image';
+      } catch (e2) {
+        print('Error encoding image: $e2');
+        rethrow;
+      }
     }
   }
 
   // Fetch user data from Firestore
   Future<void> _fetchUserData(String uid) async {
     try {
-      DocumentSnapshot doc =
+      DocumentSnapshot userDoc =
           await _firestore.collection('users').doc(uid).get();
-      if (doc.exists) {
-        _userModel = UserModel.fromJson(doc.data() as Map<String, dynamic>);
+
+      if (userDoc.exists) {
+        _userModel = UserModel.fromJson(userDoc.data() as Map<String, dynamic>);
+
+        // Check verification status for sportsperson
+        // if (_userModel!.role == 'sportsperson') {
+        //   DocumentSnapshot verificationDoc =
+        //       await _firestore.collection('verifications').doc(uid).get();
+
+        //   if (verificationDoc.exists) {
+        //     Map<String, dynamic> verificationData =
+        //         verificationDoc.data() as Map<String, dynamic>;
+        //     bool isVerified = verificationData['status'] == 'approved';
+
+        //     // Update user model with verification status
+        //     _userModel = _userModel!.copyWith(isVerified: isVerified);
+
+        //     // Update user document if verification status changed
+        //     if (isVerified != userDoc.get('isVerified')) {
+        //       await _firestore
+        //           .collection('users')
+        //           .doc(uid)
+        //           .update({'isVerified': isVerified});
+        //     }
+        //   }
+        // }
+
+        notifyListeners();
+      } else {
+        print('User document does not exist for uid: $uid');
+        _userModel = null;
         notifyListeners();
       }
     } catch (e) {
       print('Error fetching user data: $e');
+      _userModel = null;
+      notifyListeners();
     }
+  }
+
+  Future<void> splashFetchUserData(String uid) async {
+    await _fetchUserData(uid);
   }
 
   // Sign out
   Future<void> signOut() async {
-    await _auth.signOut();
-    _userModel = null;
-    notifyListeners();
+    try {
+      await _auth.signOut();
+      _userModel = null;
+      notifyListeners();
+    } catch (e) {
+      print('Error signing out: $e');
+      rethrow;
+    }
   }
 
   // Check if user is verified sportsperson
   Future<bool> isSportspersonVerified() async {
-    if (_userModel == null || _userModel!.role != 'sportsperson') {
+    if (_userModel == null) {
       return false;
     }
 
-    try {
-      DocumentSnapshot doc = await _firestore
-          .collection('verifications')
-          .doc(_userModel!.uid)
-          .get();
-
-      if (doc.exists) {
-        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return data['status'] == 'approved';
-      }
-      return false;
-    } catch (e) {
-      print('Error checking verification status: $e');
-      return false;
+    if (_userModel!.role != 'sportsperson') {
+      return false; // Not a sportsperson
     }
+
+    return _userModel!.isVerified;
   }
 
   // Update user profile
@@ -178,9 +205,17 @@ class AuthService extends ChangeNotifier {
     List<String>? interests,
     List<String>? favoriteEquipmentSites,
     File? profileImage,
+    String? phone,
+    String? address,
+    String? dateOfBirth,
+    int? height,
+    int? weight,
+    String? emergencyContact,
   }) async {
     try {
-      if (_userModel == null) return;
+      if (_userModel == null || currentUser == null) {
+        throw Exception('User not authenticated');
+      }
 
       String? profileImageUrl = _userModel!.profileImageUrl;
 
@@ -194,22 +229,123 @@ class AuthService extends ChangeNotifier {
         profileImageUrl = await snapshot.ref.getDownloadURL();
       }
 
-      UserModel updatedUser = _userModel!.copyWith(
-        name: name,
-        interests: interests,
-        favoriteEquipmentSites: favoriteEquipmentSites,
-        profileImageUrl: profileImageUrl,
-      );
+      Map<String, dynamic> updateData = {};
 
-      await _firestore
-          .collection('users')
-          .doc(_userModel!.uid)
-          .update(updatedUser.toJson());
+      if (name != null && name.isNotEmpty) {
+        updateData['name'] = name;
+      }
 
-      _userModel = updatedUser;
-      notifyListeners();
+      if (interests != null) {
+        updateData['interests'] = interests;
+      }
+
+      if (favoriteEquipmentSites != null) {
+        updateData['favoriteEquipmentSites'] = favoriteEquipmentSites;
+      }
+
+      if (profileImageUrl != null) {
+        updateData['profileImageUrl'] = profileImageUrl;
+      }
+
+      if (phone != null) {
+        updateData['phone'] = phone;
+      }
+
+      if (address != null) {
+        updateData['address'] = address;
+      }
+
+      if (dateOfBirth != null) {
+        updateData['dateOfBirth'] = dateOfBirth;
+      }
+
+      if (height != null) {
+        updateData['height'] = height;
+      }
+
+      if (weight != null) {
+        updateData['weight'] = weight;
+      }
+
+      if (emergencyContact != null) {
+        updateData['emergencyContact'] = emergencyContact;
+      }
+
+      if (updateData.isNotEmpty) {
+        await _firestore
+            .collection('users')
+            .doc(_userModel!.uid)
+            .update(updateData);
+
+        // Update local user model
+        _userModel = _userModel!.copyWith(
+          name: name ?? _userModel!.name,
+          interests: interests ?? _userModel!.interests,
+          favoriteEquipmentSites:
+              favoriteEquipmentSites ?? _userModel!.favoriteEquipmentSites,
+          profileImageUrl: profileImageUrl ?? _userModel!.profileImageUrl,
+          phone: phone ?? _userModel!.phone,
+          address: address ?? _userModel!.address,
+          dateOfBirth: dateOfBirth ?? _userModel!.dateOfBirth,
+          height: height ?? _userModel!.height,
+          weight: weight ?? _userModel!.weight,
+          emergencyContact: emergencyContact ?? _userModel!.emergencyContact,
+        );
+
+        notifyListeners();
+      }
     } catch (e) {
       print('Error updating profile: $e');
+      rethrow;
+    }
+  }
+
+  // Reset password
+  Future<void> resetPassword(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      print('Error resetting password: $e');
+      rethrow;
+    }
+  }
+
+  // Delete account
+  Future<void> deleteAccount() async {
+    try {
+      if (currentUser == null) {
+        throw Exception('User not authenticated');
+      }
+
+      String uid = currentUser!.uid;
+
+      // Delete user data from Firestore
+      await _firestore.collection('users').doc(uid).delete();
+
+      // Delete verification data if exists
+      await _firestore.collection('verifications').doc(uid).delete();
+
+      // Delete profile image if exists
+      try {
+        await _storage.ref().child('profile_images').child('$uid.jpg').delete();
+      } catch (e) {
+        // Ignore if image doesn't exist
+      }
+
+      // Delete NIC image if exists
+      try {
+        await _storage.ref().child('nic_images').child('$uid.jpg').delete();
+      } catch (e) {
+        // Ignore if image doesn't exist
+      }
+
+      // Delete Firebase Auth user
+      await currentUser!.delete();
+
+      _userModel = null;
+      notifyListeners();
+    } catch (e) {
+      print('Error deleting account: $e');
       rethrow;
     }
   }

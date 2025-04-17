@@ -6,7 +6,7 @@ import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -25,8 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     final authService = Provider.of<AuthService>(context, listen: false);
     if (authService.currentUser != null) {
-      // print(authService.currentUser!.email);
-      await authService.fetchData(authService.currentUser!.uid);
+      authService.splashFetchUserData(authService.currentUser!.uid);
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
       );

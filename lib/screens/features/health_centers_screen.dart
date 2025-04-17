@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart';
+import 'package:sri_lanka_sports_app/models/health_center_model.dart';
+import 'package:sri_lanka_sports_app/repositories/health_center_repository.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class HealthCentersScreen extends StatefulWidget {
@@ -14,7 +16,10 @@ class HealthCentersScreen extends StatefulWidget {
 class _HealthCentersScreenState extends State<HealthCentersScreen>
     with WidgetsBindingObserver {
   final MapController _mapController = MapController();
-  Location _location = Location();
+  final Location _location = Location();
+  final HealthCenterRepository _healthCenterRepository =
+      HealthCenterRepository();
+
   bool _serviceEnabled = false;
   PermissionStatus _permissionGranted = PermissionStatus.denied;
   LocationData? _locationData;
@@ -25,37 +30,10 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
   final LatLng _sriLankaCenter = const LatLng(7.8731, 80.7718);
   final List<Marker> _markers = [];
 
-  // Sample health centers data
-  final List<Map<String, dynamic>> _healthCenters = [
-    {
-      'id': '1',
-      'name': 'National Sports Medicine Center',
-      'address': 'Colombo 07, Sri Lanka',
-      'phone': '+94 11 2698 456',
-      'services': [
-        'Medical Check-ups',
-        'Physiotherapy',
-        'Nutrition Counseling'
-      ],
-      'position': const LatLng(6.9101, 79.8642),
-    },
-    {
-      'id': '2',
-      'name': 'Kandy Sports Health Center',
-      'address': 'Kandy, Sri Lanka',
-      'phone': '+94 81 2234 567',
-      'services': ['Injury Treatment', 'Supplements', 'Fitness Assessment'],
-      'position': const LatLng(7.2906, 80.6337),
-    },
-    {
-      'id': '3',
-      'name': 'Galle Sports Medicine Institute',
-      'address': 'Galle, Sri Lanka',
-      'phone': '+94 91 2245 678',
-      'services': ['Rehabilitation', 'Sports Psychology', 'Nutrition'],
-      'position': const LatLng(6.0535, 80.2210),
-    },
-  ];
+  // Health centers data
+  List<HealthCenterModel> _healthCenters = [];
+  List<HealthCenterWithDistance> _healthCentersWithDistance = [];
+  HealthCenterModel? _nearestHealthCenter;
 
   @override
   void initState() {
@@ -77,55 +55,58 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
       _markers.clear();
     });
 
-    // Add health center markers
-    for (var center in _healthCenters) {
-      _markers.add(
-        Marker(
-          point: center['position'],
-          width: 80,
-          height: 80,
-          child: GestureDetector(
-            onTap: () => _showHealthCenterDetails(center),
-            child: Column(
-              children: [
-                Icon(Icons.local_hospital,
-                    color: AppTheme.primaryColor, size: 30),
-                Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    center['name'].toString().split(' ')[0],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
+    try {
+      // Fetch health centers from repository
+      _healthCenters = await _healthCenterRepository.getAllHealthCenters();
+
+      // Add health center markers
+      for (var center in _healthCenters) {
+        _markers.add(
+          Marker(
+            point: center.position,
+            width: 80,
+            height: 80,
+            child: GestureDetector(
+              onTap: () => _showHealthCenterDetails(center),
+              child: Column(
+                children: [
+                  Icon(Icons.local_hospital,
+                      color: AppTheme.primaryColor, size: 30),
+                  Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 2,
+                        ),
+                      ],
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    child: Text(
+                      center.name.split(' ')[0],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    }
+        );
+      }
 
-    try {
       await _checkLocationPermission();
     } catch (e) {
       setState(() {
-        _errorMessage = 'Location permission error: $e';
+        _errorMessage = 'Error loading health centers: $e';
         _isLoading = false;
       });
-      print("Location permission error: $e");
+      print("Error loading health centers: $e");
     }
   }
 
@@ -233,6 +214,11 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
               );
             });
           }
+
+          // Get nearby health centers
+          if (_locationData != null) {
+            _findNearbyHealthCenters();
+          }
         } catch (e) {
           print("Error moving map: $e");
         }
@@ -247,7 +233,161 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
     }
   }
 
-  void _showHealthCenterDetails(Map<String, dynamic> center) {
+  Future<void> _findNearbyHealthCenters() async {
+    if (_locationData == null ||
+        _locationData!.latitude == null ||
+        _locationData!.longitude == null) {
+      return;
+    }
+
+    try {
+      final userLocation =
+          LatLng(_locationData!.latitude!, _locationData!.longitude!);
+
+      // Calculate distance for each health center
+      _healthCentersWithDistance = _healthCenters.map((center) {
+        final distance = _calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            center.position.latitude,
+            center.position.longitude);
+        return HealthCenterWithDistance(center: center, distance: distance);
+      }).toList();
+
+      // Sort by distance
+      _healthCentersWithDistance
+          .sort((a, b) => a.distance.compareTo(b.distance));
+
+      // Set nearest health center
+      if (_healthCentersWithDistance.isNotEmpty) {
+        setState(() {
+          _nearestHealthCenter = _healthCentersWithDistance.first.center;
+        });
+
+        // Show a snackbar with the nearest health center
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                  'Nearest health center: ${_nearestHealthCenter!.name} (${_healthCentersWithDistance.first.distance.toStringAsFixed(1)} km)'),
+              action: SnackBarAction(
+                label: 'View',
+                onPressed: () {
+                  _showHealthCenterDetails(_nearestHealthCenter!);
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error finding nearby health centers: $e');
+    }
+  }
+
+  // Calculate distance between two points using Haversine formula
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371; // Radius of the earth in km
+
+    double dLat = _degreesToRadians(lat2 - lat1);
+    double dLon = _degreesToRadians(lon2 - lon1);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  // Convert degrees to radians
+  double _degreesToRadians(double degrees) {
+    return degrees * (pi / 180);
+  }
+
+  // Helper functions for the Haversine formula
+  double sin(double x) {
+    return _sin(x);
+  }
+
+  double cos(double x) {
+    return _cos(x);
+  }
+
+  double atan2(double y, double x) {
+    return _atan2(y, x);
+  }
+
+  double sqrt(double x) {
+    return _sqrt(x);
+  }
+
+  // Implementations of math functions
+  double _sin(double x) {
+    return x -
+        (x * x * x) / 6 +
+        (x * x * x * x * x) / 120 -
+        (x * x * x * x * x * x * x) / 5040;
+  }
+
+  double _cos(double x) {
+    return 1 -
+        (x * x) / 2 +
+        (x * x * x * x) / 24 -
+        (x * x * x * x * x * x) / 720;
+  }
+
+  double _atan2(double y, double x) {
+    if (x > 0) {
+      return _atan(y / x);
+    } else if (x < 0) {
+      return y >= 0 ? _atan(y / x) + pi : _atan(y / x) - pi;
+    } else {
+      return y > 0 ? pi / 2 : -pi / 2;
+    }
+  }
+
+  double _atan(double x) {
+    return x -
+        (x * x * x) / 3 +
+        (x * x * x * x * x) / 5 -
+        (x * x * x * x * x * x * x) / 7;
+  }
+
+  double _sqrt(double x) {
+    double guess = x / 2;
+    for (int i = 0; i < 10; i++) {
+      guess = (guess + x / guess) / 2;
+    }
+    return guess;
+  }
+
+  // Constants
+  static const double pi = 3.14159265358979323846;
+
+  void _showHealthCenterDetails(HealthCenterModel center) {
+    // Calculate distance if we have user location
+    String distanceText = '';
+    if (_locationData != null &&
+        _locationData!.latitude != null &&
+        _locationData!.longitude != null) {
+      final distance = _calculateDistance(
+          _locationData!.latitude!,
+          _locationData!.longitude!,
+          center.position.latitude,
+          center.position.longitude);
+      distanceText = ' (${distance.toStringAsFixed(1)} km away)';
+    }
+
+    // Check if this is the nearest center
+    final isNearest =
+        _nearestHealthCenter != null && center.id == _nearestHealthCenter!.id;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -261,8 +401,32 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (isNearest)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.location_on, color: Colors.white, size: 16),
+                      SizedBox(width: 4),
+                      Text(
+                        'Nearest Health Center',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Text(
-                center['name'],
+                center.name + distanceText,
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -278,7 +442,7 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    center['address'],
+                    center.address,
                     style: TextStyle(
                       color: Colors.grey[600],
                     ),
@@ -295,7 +459,7 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    center['phone'],
+                    center.phone,
                     style: TextStyle(
                       color: Colors.grey[600],
                     ),
@@ -312,7 +476,7 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
               ),
               const SizedBox(height: 8),
               Column(
-                children: (center['services'] as List<String>).map((service) {
+                children: center.services.map((service) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
@@ -329,13 +493,47 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
                   );
                 }).toList(),
               ),
+
+              // Operating hours if available
+              if (center.operatingHours != null) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Operating Hours',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...center.operatingHours!.entries.map((entry) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: Text(
+                            entry.key,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Text(entry.value.toString()),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to directions
+                    // Get directions to health center
                     Navigator.pop(context);
+                    _getDirectionsToHealthCenter(center);
                   },
                   child: const Text('Get Directions'),
                 ),
@@ -365,7 +563,7 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'All Health Centers',
+                'Health Centers',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -373,40 +571,150 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ListView.builder(
-                  itemCount: _healthCenters.length,
-                  itemBuilder: (context, index) {
-                    final center = _healthCenters[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        title: Text(
-                          center['name'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(center['address']),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {
-                          Navigator.pop(context);
-                          _mapController.move(
-                            center['position'],
-                            15.0,
+                child: _locationData != null
+                    ? ListView.builder(
+                        itemCount: _healthCentersWithDistance.length,
+                        itemBuilder: (context, index) {
+                          final item = _healthCentersWithDistance[index];
+                          final center = item.center;
+                          final distance = item.distance;
+                          final isNearest = _nearestHealthCenter != null &&
+                              center.id == _nearestHealthCenter!.id;
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            color: isNearest
+                                ? Colors.green.withOpacity(0.1)
+                                : null,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: isNearest
+                                  ? const BorderSide(
+                                      color: Colors.green, width: 1.5)
+                                  : BorderSide.none,
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              leading: CircleAvatar(
+                                backgroundColor: isNearest
+                                    ? Colors.green
+                                    : AppTheme.primaryColor,
+                                child: Icon(
+                                  isNearest
+                                      ? Icons.location_on
+                                      : Icons.local_hospital,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      center.name,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isNearest)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Text(
+                                        'Nearest',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(center.address),
+                                  Text(
+                                    '${distance.toStringAsFixed(1)} km away',
+                                    style: TextStyle(
+                                      color: isNearest
+                                          ? Colors.green
+                                          : Colors.grey[600],
+                                      fontWeight:
+                                          isNearest ? FontWeight.bold : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing:
+                                  const Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _mapController.move(
+                                  center.position,
+                                  15.0,
+                                );
+                                Future.delayed(
+                                    const Duration(milliseconds: 500), () {
+                                  _showHealthCenterDetails(center);
+                                });
+                              },
+                            ),
                           );
-                          Future.delayed(const Duration(milliseconds: 500), () {
-                            _showHealthCenterDetails(center);
-                          });
+                        },
+                      )
+                    : ListView.builder(
+                        itemCount: _healthCenters.length,
+                        itemBuilder: (context, index) {
+                          final center = _healthCenters[index];
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              title: Text(
+                                center.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(center.address),
+                              trailing:
+                                  const Icon(Icons.arrow_forward_ios, size: 16),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _mapController.move(
+                                  center.position,
+                                  15.0,
+                                );
+                                Future.delayed(
+                                    const Duration(milliseconds: 500), () {
+                                  _showHealthCenterDetails(center);
+                                });
+                              },
+                            ),
+                          );
                         },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _getDirectionsToHealthCenter(HealthCenterModel center) {
+    // In a real app, this would open a maps app with directions
+    // For now, just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Getting directions to ${center.name}'),
+      ),
     );
   }
 
@@ -456,10 +764,6 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
                       urlTemplate:
                           'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                       userAgentPackageName: 'com.example.sri_lanka_sports_app',
-                      // Alternative free tile providers:
-                      // ESRI World Map: urlTemplate: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-                      // Stamen Terrain: urlTemplate: 'https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.png',
-                      // Carto DB: urlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png',
                     ),
                     MarkerLayer(
                       markers: _markers,
@@ -524,4 +828,14 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
       ),
     );
   }
+}
+
+class HealthCenterWithDistance {
+  final HealthCenterModel center;
+  final double distance;
+
+  HealthCenterWithDistance({
+    required this.center,
+    required this.distance,
+  });
 }

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sri_lanka_sports_app/services/auth_service.dart';
+import 'package:sri_lanka_sports_app/models/equipment_model.dart';
+import 'package:sri_lanka_sports_app/repositories/equipment_repository.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 
 class EquipmentFinderScreen extends StatefulWidget {
-  const EquipmentFinderScreen({Key? key}) : super(key: key);
+  const EquipmentFinderScreen({super.key});
 
   @override
   State<EquipmentFinderScreen> createState() => _EquipmentFinderScreenState();
@@ -14,7 +14,13 @@ class EquipmentFinderScreen extends StatefulWidget {
 
 class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   final _searchController = TextEditingController();
+  final EquipmentRepository _equipmentRepository = EquipmentRepository();
+
   final List<String> _tags = [];
+  List<String> _favoriteSites = [];
+  bool _isLoading = false;
+  List<EquipmentModel>? _searchResults;
+
   final List<String> _suggestedTags = [
     'Cricket',
     'Football',
@@ -30,10 +36,6 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     'Equipment',
   ];
 
-  List<String> _favoriteSites = [];
-  bool _isLoading = false;
-  List<Map<String, dynamic>>? _searchResults;
-
   @override
   void initState() {
     super.initState();
@@ -47,20 +49,33 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   }
 
   Future<void> _loadFavoriteSites() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final userModel = authService.userModel;
-
-    if (userModel != null && userModel.favoriteEquipmentSites != null) {
+    try {
       setState(() {
-        _favoriteSites = userModel.favoriteEquipmentSites!;
+        _isLoading = true;
       });
-    } else {
+
+      final sites = await _equipmentRepository.getFavoriteEquipmentSites();
+
+      setState(() {
+        _favoriteSites = sites.isNotEmpty
+            ? sites
+            : [
+                'SportsSL.com',
+                'CricketGear.lk',
+                'SportsEquipment.lk',
+              ];
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading favorite sites: $e');
+
       setState(() {
         _favoriteSites = [
           'SportsSL.com',
           'CricketGear.lk',
           'SportsEquipment.lk',
         ];
+        _isLoading = false;
       });
     }
   }
@@ -80,38 +95,14 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     });
 
     try {
-      // In a real app, this would be a call to your API endpoint
-      // For demo purposes, we'll simulate a response
-      await Future.delayed(const Duration(seconds: 2));
+      final results = await _equipmentRepository.searchEquipment(
+        searchTerm: _searchController.text.trim(),
+        tags: _tags.isNotEmpty ? _tags : null,
+        stores: _favoriteSites,
+      );
 
-      // Simulated response
       setState(() {
-        _searchResults = [
-          {
-            'name': 'Kookaburra Cricket Bat',
-            'price': 'Rs. 15,000',
-            'store': 'SportsSL.com',
-            'rating': 4.5,
-            'image': 'cricket_bat.jpg',
-            'url': 'https://sportsslcom/cricket-bat',
-          },
-          {
-            'name': 'Adidas Football Shoes',
-            'price': 'Rs. 8,500',
-            'store': 'SportsEquipment.lk',
-            'rating': 4.2,
-            'image': 'football_shoes.jpg',
-            'url': 'https://sportsequipment.lk/adidas-shoes',
-          },
-          {
-            'name': 'Swimming Goggles Pro',
-            'price': 'Rs. 3,200',
-            'store': 'AquaticsSL.com',
-            'rating': 4.7,
-            'image': 'swimming_goggles.jpg',
-            'url': 'https://aquaticsslcom/goggles',
-          },
-        ];
+        _searchResults = results;
         _isLoading = false;
       });
     } catch (e) {
@@ -140,6 +131,33 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     setState(() {
       _tags.remove(tag);
     });
+  }
+
+  Future<void> _updateFavoriteSites(String site, bool selected) async {
+    try {
+      List<String> updatedSites = List.from(_favoriteSites);
+
+      if (selected && !updatedSites.contains(site)) {
+        updatedSites.add(site);
+      } else if (!selected && updatedSites.contains(site)) {
+        updatedSites.remove(site);
+      }
+
+      await _equipmentRepository.updateFavoriteEquipmentSites(updatedSites);
+
+      setState(() {
+        _favoriteSites = updatedSites;
+      });
+    } catch (e) {
+      print('Error updating favorite sites: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating favorite sites: ${e.toString()}'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   @override
@@ -219,7 +237,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                         label: Text(site),
                         selected: true,
                         onSelected: (selected) {
-                          // In a real app, you would toggle the selection
+                          _updateFavoriteSites(site, selected);
                         },
                       );
                     }).toList(),
@@ -257,6 +275,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                       label: const Text('Filter'),
                       onPressed: () {
                         // Show filter options
+                        _showFilterOptions();
                       },
                     ),
                   ],
@@ -283,11 +302,27 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                 color: Colors.grey[200],
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(
-                                Icons.sports_cricket,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
+                              child: item.imageUrl != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        item.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return Icon(
+                                            _getEquipmentIcon(item.name),
+                                            size: 40,
+                                            color: Colors.grey,
+                                          );
+                                        },
+                                      ),
+                                    )
+                                  : Icon(
+                                      _getEquipmentIcon(item.name),
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
                             ),
                             const SizedBox(width: 16),
 
@@ -297,7 +332,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item['name'],
+                                    item.name,
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -305,7 +340,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    item['price'],
+                                    item.price,
                                     style: TextStyle(
                                       color: AppTheme.secondaryColor,
                                       fontWeight: FontWeight.bold,
@@ -321,7 +356,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        item['store'],
+                                        item.store,
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                         ),
@@ -338,7 +373,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        item['rating'].toString(),
+                                        item.rating.toString(),
                                         style: TextStyle(
                                           color: Colors.grey[600],
                                         ),
@@ -352,6 +387,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                         child: OutlinedButton(
                                           onPressed: () {
                                             // View details
+                                            _showEquipmentDetails(item);
                                           },
                                           child: const Text('Details'),
                                         ),
@@ -361,6 +397,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                                         child: ElevatedButton(
                                           onPressed: () {
                                             // Open URL
+                                            _openEquipmentUrl(item);
                                           },
                                           child: const Text('Visit'),
                                         ),
@@ -382,5 +419,174 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
         ),
       ),
     );
+  }
+
+  void _showFilterOptions() {
+    // Show filter options dialog
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Filter Options'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Filter options would go here
+              const Text('Sort by:'),
+              const SizedBox(height: 8),
+              ListTile(
+                title: const Text('Price: Low to High'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _sortResults('price_asc');
+                },
+              ),
+              ListTile(
+                title: const Text('Price: High to Low'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _sortResults('price_desc');
+                },
+              ),
+              ListTile(
+                title: const Text('Rating: High to Low'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _sortResults('rating_desc');
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _sortResults(String sortBy) {
+    if (_searchResults == null) return;
+
+    setState(() {
+      switch (sortBy) {
+        case 'price_asc':
+          _searchResults!.sort((a, b) {
+            // Extract numeric value from price string
+            double priceA = _extractPrice(a.price);
+            double priceB = _extractPrice(b.price);
+            return priceA.compareTo(priceB);
+          });
+          break;
+        case 'price_desc':
+          _searchResults!.sort((a, b) {
+            // Extract numeric value from price string
+            double priceA = _extractPrice(a.price);
+            double priceB = _extractPrice(b.price);
+            return priceB.compareTo(priceA);
+          });
+          break;
+        case 'rating_desc':
+          _searchResults!.sort((a, b) => b.rating.compareTo(a.rating));
+          break;
+      }
+    });
+  }
+
+  double _extractPrice(String priceString) {
+    // Extract numeric value from price string (e.g., "Rs. 15,000" -> 15000)
+    try {
+      String numericString = priceString.replaceAll(RegExp(r'[^0-9.]'), '');
+      return double.parse(numericString);
+    } catch (e) {
+      return 0.0;
+    }
+  }
+
+  void _showEquipmentDetails(EquipmentModel equipment) {
+    // Show equipment details dialog
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(equipment.name),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Price: ${equipment.price}'),
+              const SizedBox(height: 8),
+              Text('Store: ${equipment.store}'),
+              const SizedBox(height: 8),
+              Text('Rating: ${equipment.rating}'),
+              const SizedBox(height: 8),
+              if (equipment.tags != null && equipment.tags!.isNotEmpty) ...[
+                const Text('Tags:'),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: equipment.tags!.map((tag) {
+                    return Chip(
+                      label: Text(tag),
+                      labelStyle: const TextStyle(fontSize: 12),
+                      padding: EdgeInsets.zero,
+                    );
+                  }).toList(),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _openEquipmentUrl(equipment);
+              },
+              child: const Text('Visit Store'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _openEquipmentUrl(EquipmentModel equipment) {
+    // In a real app, this would open the URL in a browser
+    // For now, just show a snackbar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Opening ${equipment.url ?? equipment.store}'),
+      ),
+    );
+  }
+
+  IconData _getEquipmentIcon(String name) {
+    name = name.toLowerCase();
+
+    if (name.contains('cricket') || name.contains('bat')) {
+      return Icons.sports_cricket;
+    } else if (name.contains('football') || name.contains('soccer')) {
+      return Icons.sports_soccer;
+    } else if (name.contains('swimming') || name.contains('goggles')) {
+      return Icons.pool;
+    } else if (name.contains('running') || name.contains('shoes')) {
+      return Icons.directions_run;
+    } else if (name.contains('protein') || name.contains('supplement')) {
+      return Icons.fitness_center;
+    } else {
+      return Icons.sports;
+    }
   }
 }

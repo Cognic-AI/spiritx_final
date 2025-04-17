@@ -9,7 +9,7 @@ import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -21,12 +21,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nicController = TextEditingController();
-  
+
   String _selectedRole = 'student';
   File? _nicImage;
   bool _isLoading = false;
   String? _errorMessage;
-  
+
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -43,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       source: ImageSource.camera,
       imageQuality: 80,
     );
-    
+
     if (image != null) {
       setState(() {
         _nicImage = File(image.path);
@@ -53,7 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     // Validate NIC image for sportsperson
     if (_selectedRole == 'sportsperson' && _nicImage == null) {
       setState(() {
@@ -74,10 +74,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passwordController.text,
         name: _nameController.text.trim(),
         role: _selectedRole,
-        nicNumber: _selectedRole == 'sportsperson' ? _nicController.text.trim() : null,
+        nicNumber:
+            _selectedRole == 'sportsperson' ? _nicController.text.trim() : null,
         nicImage: _nicImage,
       );
-      
+
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -126,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
-                
+
                 // Name field
                 CustomTextField(
                   controller: _nameController,
@@ -140,7 +141,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Email field
                 CustomTextField(
                   controller: _emailController,
@@ -151,14 +152,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Password field
                 CustomTextField(
                   controller: _passwordController,
@@ -176,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Role selection
                 Text(
                   'I am a:',
@@ -187,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                
+
                 Row(
                   children: [
                     Expanded(
@@ -217,7 +219,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // NIC fields for sportsperson
                 if (_selectedRole == 'sportsperson') ...[
                   CustomTextField(
@@ -232,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // NIC image capture
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,7 +248,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
                       Container(
                         height: 200,
                         width: double.infinity,
@@ -284,7 +285,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                       ),
                       const SizedBox(height: 8),
-                      
                       CustomButton(
                         text: 'Take Photo',
                         icon: Icons.camera_alt,
@@ -294,7 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
                 ],
-                
+
                 // Register button
                 CustomButton(
                   text: 'Create Account',
@@ -302,7 +302,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: _register,
                 ),
                 const SizedBox(height: 24),
-                
+
                 // Login link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
