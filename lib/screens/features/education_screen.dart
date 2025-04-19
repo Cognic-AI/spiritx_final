@@ -66,6 +66,8 @@ class _EducationScreenState extends State<EducationScreen>
       appBar: AppBar(
         title: const Text('Sports Education'),
         bottom: TabBar(
+          unselectedLabelColor: Colors.black,
+          labelColor: Colors.white,
           controller: _tabController,
           tabs: const [
             Tab(text: 'Techniques'),

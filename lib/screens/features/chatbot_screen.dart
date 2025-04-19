@@ -6,9 +6,16 @@ import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 import 'package:uuid/uuid.dart';
 
 class ChatbotScreen extends StatefulWidget {
+  final VoidCallback? onChatPageChanged;
+  final Function(String)? onSessionSelected;
   final String? sessionId;
 
-  const ChatbotScreen({Key? key, this.sessionId}) : super(key: key);
+  const ChatbotScreen({
+    super.key,
+    this.sessionId,
+    this.onChatPageChanged,
+    this.onSessionSelected,
+  });
 
   @override
   State<ChatbotScreen> createState() => _ChatbotScreenState();
@@ -89,6 +96,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           _sessionTopic = 'New Conversation';
         });
       }
+      widget.onSessionSelected?.call(_sessionId);
     } catch (e) {
       print('Error initializing chat session: $e');
 
@@ -204,134 +212,130 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Sports Assistant'),
-            Text(
-              _sessionTopic,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.normal,
-              ),
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.79,
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(16),
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final message = _messages[index];
+                return _buildMessageBubble(message);
+              },
             ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const ChatSessionsScreen(),
-                ),
-              ).then((value) {
-                // Refresh if we came back from selecting a session
-                if (value == true) {
-                  Navigator.pop(context);
-                }
-              });
-            },
-            tooltip: 'Chat History',
           ),
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              _showInfoDialog();
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(16),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[index];
-                  return _buildMessageBubble(message);
-                },
+
+          // Typing indicator
+          if (_isTyping)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              alignment: Alignment.centerLeft,
+              child: Row(
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.7),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.4),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ],
               ),
             ),
 
-            // Typing indicator
-            if (_isTyping)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                alignment: Alignment.centerLeft,
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                        shape: BoxShape.circle,
+          // Message input
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 5,
+                  offset: const Offset(0, -1),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem<String>(
+                      value: 'new_chat',
+                      child: ListTile(
+                        leading: Icon(Icons.add_circle_outline),
+                        title: Text('New Chat'),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.7),
-                        shape: BoxShape.circle,
+                    const PopupMenuItem<String>(
+                      value: 'history',
+                      child: ListTile(
+                        leading: Icon(Icons.history),
+                        title: Text('Chat History'),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.4),
-                        shape: BoxShape.circle,
+                    const PopupMenuItem<String>(
+                      value: 'info',
+                      child: ListTile(
+                        leading: Icon(Icons.info_outline),
+                        title: Text('App Info'),
                       ),
                     ),
                   ],
+                  onSelected: (String value) {
+                    if (value == 'history') {
+                      widget.onChatPageChanged?.call();
+                    } else if (value == 'info') {
+                      _showInfoDialog();
+                    } else if (value == 'new_chat') {
+                      _initChatSession();
+                    }
+                  },
                 ),
-              ),
-
-            // Message input
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, -1),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: CustomTextField(
+                    controller: _messageController,
+                    hintText: 'Ask me anything about sports...',
+                    onSubmitted: (_) => _sendMessage(),
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: CustomTextField(
-                      controller: _messageController,
-                      hintText: 'Ask me anything about sports...',
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FloatingActionButton(
-                    onPressed: _sendMessage,
-                    child: const Icon(Icons.send),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                FloatingActionButton(
+                  onPressed: _sendMessage,
+                  child: const Icon(Icons.send),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+    //   ),
+    // );
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
@@ -419,7 +423,11 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 }
 
 class ChatSessionsScreen extends StatefulWidget {
-  const ChatSessionsScreen({Key? key}) : super(key: key);
+  final Function(String)? onSessionSelected;
+  final Function(String)? onChatPageChanged;
+
+  const ChatSessionsScreen(
+      {super.key, this.onSessionSelected, this.onChatPageChanged});
 
   @override
   State<ChatSessionsScreen> createState() => _ChatSessionsScreenState();
@@ -431,11 +439,38 @@ class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
   bool _isLoading = true;
   List<ChatSession> _sessions = [];
   String? _errorMessage;
+  String _sessionId = '';
 
   @override
   void initState() {
     super.initState();
     _loadChatSessions();
+  }
+
+  Future<void> _initChatSession() async {
+    try {
+      // Create a new chat session
+      _sessionId = await _chatbotRepository.createChatSession();
+
+      // Get the welcome message
+      final session = await _chatbotRepository.getChatSession(_sessionId);
+      if (session != null) {
+        setState(() {});
+      } else {
+        // Fallback welcome message if session creation failed
+        setState(() {
+          _sessionId = const Uuid().v4();
+        });
+      }
+      widget.onSessionSelected?.call(_sessionId);
+    } catch (e) {
+      print('Error initializing chat session: $e');
+
+      // Fallback welcome message if session creation failed
+      setState(() {
+        _sessionId = const Uuid().v4();
+      });
+    }
   }
 
   Future<void> _loadChatSessions() async {
@@ -522,145 +557,145 @@ class _ChatSessionsScreenState extends State<ChatSessionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chat History'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadChatSessions,
-            tooltip: 'Refresh',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadChatSessions,
-                        child: const Text('Try Again'),
-                      ),
-                    ],
-                  ),
-                )
-              : _sessions.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      itemCount: _sessions.length,
-                      itemBuilder: (context, index) {
-                        final session = _sessions[index];
-                        final topic = _getSessionTopic(session);
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-                        return Dismissible(
-                          key: Key(session.id),
-                          background: Container(
-                            color: Colors.red,
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.only(right: 16),
-                            child: const Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ),
-                          direction: DismissDirection.endToStart,
-                          confirmDismiss: (direction) async {
-                            return await showDialog(
-                              context: context,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: const Text('Delete Chat Session'),
-                                  content: const Text(
-                                      'Are you sure you want to delete this chat session?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
-                          onDismissed: (direction) {
-                            _deleteSession(session.id);
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: AppTheme.primaryColor,
-                                child: const Icon(
-                                  Icons.chat,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              title: Text(
-                                topic,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: Text(
-                                '${session.messages.length} messages • ${_formatDate(session.lastUpdatedAt ?? session.createdAt)}',
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.delete),
-                                    onPressed: () {
-                                      _deleteSession(session.id);
-                                    },
-                                    tooltip: 'Delete',
-                                  ),
-                                  const Icon(Icons.arrow_forward_ios, size: 16),
-                                ],
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        ChatbotScreen(sessionId: session.id),
-                                  ),
-                                ).then((_) {
-                                  // Return true to indicate we selected a session
-                                  Navigator.pop(context, true);
-                                });
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const ChatbotScreen(),
+    if (_errorMessage != null) {
+      return SingleChildScrollView(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadChatSessions,
+                  child: const Text('Try Again'),
+                ),
+              ],
             ),
-          ).then((_) {
-            Navigator.pop(context, true);
-          });
-        },
-        child: const Icon(Icons.add),
-        tooltip: 'New Chat',
+          ),
+        ),
+      );
+    }
+
+    if (_sessions.isEmpty) {
+      return SingleChildScrollView(
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          child: _buildEmptyState(),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            alignment: Alignment.center,
+            child: ElevatedButton(
+              onPressed: () {
+                // Start new conversation logic
+                _initChatSession();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Start New Conversation'),
+            ),
+          ),
+          ..._sessions.map((session) {
+            final topic = _getSessionTopic(session);
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Dismissible(
+                key: Key(session.id),
+                background: Container(
+                  color: Colors.red,
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 16),
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  ),
+                ),
+                direction: DismissDirection.endToStart,
+                confirmDismiss: (direction) async {
+                  return await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Delete Chat Session'),
+                        content: const Text(
+                            'Are you sure you want to delete this chat session?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                onDismissed: (direction) {
+                  _deleteSession(session.id);
+                },
+                child: Card(
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.primaryColor,
+                      child: const Icon(
+                        Icons.chat,
+                        color: Colors.white,
+                      ),
+                    ),
+                    title: Text(
+                      topic,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      '${session.messages.length} messages • ${_formatDate(session.lastUpdatedAt ?? session.createdAt)}',
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => _deleteSession(session.id),
+                          tooltip: 'Delete',
+                        ),
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                      ],
+                    ),
+                    onTap: () {
+                      widget.onSessionSelected?.call(session.id);
+                    },
+                  ),
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

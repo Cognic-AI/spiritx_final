@@ -145,216 +145,218 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final isSportsperson = userModel.role == 'sportsperson';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _isLoading ? null : _signOut,
-            tooltip: 'Sign Out',
-          ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Profile image
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: userModel.profileImageUrl != null
-                            ? NetworkImage(userModel.profileImageUrl!)
-                            : null,
-                        child: userModel.profileImageUrl == null
-                            ? const Icon(
-                                Icons.person,
-                                size: 60,
-                                color: Colors.grey,
-                              )
-                            : null,
-                      ),
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: AppTheme.primaryColor,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.camera_alt,
-                            size: 16,
-                            color: Colors.white,
-                          ),
-                          onPressed: _pickProfileImage,
+    return
+        // Scaffold(
+        //   appBar: AppBar(
+        //     title: const Text('Profile'),
+        //     actions: [
+        //       IconButton(
+        //         icon: const Icon(Icons.logout),
+        //         onPressed: _isLoading ? null : _signOut,
+        //         tooltip: 'Sign Out',
+        //       ),
+        //     ],
+        //   ),
+        //   body:
+        _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Profile image
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: userModel.profileImageUrl != null
+                              ? NetworkImage(userModel.profileImageUrl!)
+                              : null,
+                          child: userModel.profileImageUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Colors.grey,
+                                )
+                              : null,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // User name
-                  Text(
-                    userModel.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // User email
-                  Text(
-                    userModel.email,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // User role and verification status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: isSportsperson
-                              ? AppTheme.primaryColor
-                              : AppTheme.secondaryColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          isSportsperson ? 'Sports Person' : 'Student',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppTheme.primaryColor,
+                          child: IconButton(
+                            icon: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            onPressed: _pickProfileImage,
                           ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // User name
+                    Text(
+                      userModel.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
                       ),
-                      if (isSportsperson) ...[
-                        const SizedBox(width: 8),
+                    ),
+                    const SizedBox(height: 4),
+
+                    // User email
+                    Text(
+                      userModel.email,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // User role and verification status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: userModel.isVerified
-                                ? Colors.green
-                                : Colors.orange,
+                            color: isSportsperson
+                                ? AppTheme.primaryColor
+                                : AppTheme.secondaryColor,
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Text(
-                            userModel.isVerified
-                                ? 'Verified'
-                                : 'Pending Verification',
+                            isSportsperson ? 'Sports Person' : 'Student',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Generate dummy data button
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.amber),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Developer Tools',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        if (isSportsperson) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: userModel.isVerified
+                                  ? Colors.green
+                                  : Colors.orange,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              userModel.isVerified
+                                  ? 'Verified'
+                                  : 'Pending Verification',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Generate dummy data for testing purposes. This will create sample data for all collections in the database.',
-                        ),
-                        const SizedBox(height: 16),
-                        CustomButton(
-                          text: _isGeneratingDummyData
-                              ? 'Generating Data...'
-                              : 'Generate Dummy Data',
-                          icon: Icons.data_array,
-                          isLoading: _isGeneratingDummyData,
-                          onPressed: _generateDummyData,
-                          color: Colors.amber[700],
-                        ),
+                        ],
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Profile sections
-                  const Divider(),
-                  _buildProfileSection(
-                    title: 'Personal Information',
-                    icon: Icons.person,
-                    onTap: () {
-                      _navigateToPersonalInfo(userModel);
-                    },
-                  ),
-                  const Divider(),
-                  if (isSportsperson) ...[
+                    // Generate dummy data button
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.amber),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Developer Tools',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Generate dummy data for testing purposes. This will create sample data for all collections in the database.',
+                          ),
+                          const SizedBox(height: 16),
+                          CustomButton(
+                            text: _isGeneratingDummyData
+                                ? 'Generating Data...'
+                                : 'Generate Dummy Data',
+                            icon: Icons.data_array,
+                            isLoading: _isGeneratingDummyData,
+                            onPressed: _generateDummyData,
+                            color: Colors.amber[700],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Profile sections
+                    const Divider(),
                     _buildProfileSection(
-                      title: 'Verification Status',
-                      icon: Icons.verified_user,
+                      title: 'Personal Information',
+                      icon: Icons.person,
                       onTap: () {
-                        _showVerificationStatus(userModel);
+                        _navigateToPersonalInfo(userModel);
                       },
                     ),
                     const Divider(),
-                  ],
-                  _buildProfileSection(
-                    title: 'Settings',
-                    icon: Icons.settings,
-                    onTap: () {
-                      _navigateToSettings();
-                    },
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 32),
+                    if (isSportsperson) ...[
+                      _buildProfileSection(
+                        title: 'Verification Status',
+                        icon: Icons.verified_user,
+                        onTap: () {
+                          _showVerificationStatus(userModel);
+                        },
+                      ),
+                      const Divider(),
+                    ],
+                    _buildProfileSection(
+                      title: 'Settings',
+                      icon: Icons.settings,
+                      onTap: () {
+                        _navigateToSettings();
+                      },
+                    ),
+                    const Divider(),
+                    const SizedBox(height: 32),
 
-                  // Sign out button
-                  CustomButton(
-                    text: 'Sign Out',
-                    icon: Icons.logout,
-                    onPressed: _signOut,
-                  ),
-                  const SizedBox(height: 16),
+                    // Sign out button
+                    CustomButton(
+                      text: 'Sign Out',
+                      icon: Icons.logout,
+                      onPressed: _signOut,
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Delete account button
-                  TextButton(
-                    onPressed: () {
-                      _showDeleteAccountConfirmation();
-                    },
-                    child: const Text(
-                      'Delete Account',
-                      style: TextStyle(
-                        color: Colors.red,
+                    // Delete account button
+                    TextButton(
+                      onPressed: () {
+                        _showDeleteAccountConfirmation();
+                      },
+                      child: const Text(
+                        'Delete Account',
+                        style: TextStyle(
+                          color: Colors.red,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-    );
+                  ],
+                ),
+                // ),
+              );
   }
 
   Widget _buildProfileSection({
