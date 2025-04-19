@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sri_lanka_sports_app/models/equipment_model.dart';
 import 'package:sri_lanka_sports_app/repositories/equipment_repository.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
-import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 
 class EquipmentFinderScreen extends StatefulWidget {
@@ -20,6 +19,14 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   List<String> _favoriteSites = [];
   bool _isLoading = false;
   List<EquipmentModel>? _searchResults;
+
+  final List<String> _allPossibleSites = [
+    'SportsSL.com',
+    'CricketGear.lk',
+    'SportsEquipment.lk',
+    'AthleticWorld.lk',
+    'ProSports.lk',
+  ];
 
   final List<String> _suggestedTags = [
     'Cricket',
@@ -59,21 +66,16 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
       setState(() {
         _favoriteSites = sites.isNotEmpty
             ? sites
-            : [
-                'SportsSL.com',
-                'CricketGear.lk',
-                'SportsEquipment.lk',
-              ];
+            : ['SportsSL.com', 'CricketGear.lk', 'SportsEquipment.lk'];
         _isLoading = false;
       });
     } catch (e) {
       print('Error loading favorite sites: $e');
-
       setState(() {
         _favoriteSites = [
           'SportsSL.com',
           'CricketGear.lk',
-          'SportsEquipment.lk',
+          'SportsEquipment.lk'
         ];
         _isLoading = false;
       });
@@ -137,9 +139,11 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     try {
       List<String> updatedSites = List.from(_favoriteSites);
 
-      if (selected && !updatedSites.contains(site)) {
-        updatedSites.add(site);
-      } else if (!selected && updatedSites.contains(site)) {
+      if (selected) {
+        if (!updatedSites.contains(site)) {
+          updatedSites.add(site);
+        }
+      } else {
         updatedSites.remove(site);
       }
 
@@ -150,7 +154,6 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
       });
     } catch (e) {
       print('Error updating favorite sites: $e');
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating favorite sites: ${e.toString()}'),
@@ -166,7 +169,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
       appBar: AppBar(
         title: const Text('Equipment Finder'),
       ),
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
@@ -219,7 +222,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                       );
                     }).toList(),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
 
                   // Favorite sites
                   const Text(
@@ -229,27 +232,64 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _favoriteSites.map((site) {
-                      return FilterChip(
-                        label: Text(site),
-                        selected: true,
-                        onSelected: (selected) {
-                          _updateFavoriteSites(site, selected);
+                  Column(
+                    children: _allPossibleSites.map((site) {
+                      final isSelected = _favoriteSites.contains(site);
+                      return CheckboxListTile(
+                        value: isSelected,
+                        onChanged: (selected) {
+                          _updateFavoriteSites(site, selected ?? false);
                         },
+                        title: Text(site),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                        dense: true,
                       );
                     }).toList(),
                   ),
                   const SizedBox(height: 16),
 
                   // Search button
-                  CustomButton(
-                    text: 'Find Equipment',
-                    isLoading: _isLoading,
-                    onPressed: _searchEquipment,
-                  ),
+                  ElevatedButton(
+                      onPressed: _searchEquipment,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if (_isLoading)
+                                  const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                else
+                                  Row(children: [
+                                    const Text('Find Equipment'),
+                                    const SizedBox(width: 8),
+                                    const Icon(
+                                      Icons.search,
+                                      color: Colors.white,
+                                    ),
+                                  ])
+                              ]),
+                        ],
+                      )),
                 ],
               ),
             ),

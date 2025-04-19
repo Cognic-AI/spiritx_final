@@ -21,51 +21,60 @@ class AppTheme {
 
   // Light theme
   static final ThemeData lightTheme = ThemeData(
-    primaryColor: primaryColor,
-    colorScheme: ColorScheme.light(
-      primary: primaryColor,
-      secondary: secondaryColor,
-      error: errorColor,
-    ),
-    scaffoldBackgroundColor: backgroundLight,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: primaryColor,
-      foregroundColor: textPrimaryDark,
-      elevation: 0,
-    ),
-    textTheme: const TextTheme(
-      displayLarge:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      displayMedium:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      displaySmall:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
-      headlineMedium:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
-      headlineSmall:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
-      titleLarge:
-          TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
-      bodyLarge: TextStyle(color: textPrimaryLight),
-      bodyMedium: TextStyle(color: textSecondaryLight),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
+      primaryColor: primaryColor,
+      colorScheme: ColorScheme.light(
+        primary: primaryColor,
+        secondary: secondaryColor,
+        error: errorColor,
+      ),
+      scaffoldBackgroundColor: backgroundLight,
+      appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: textPrimaryDark,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+        elevation: 0,
+      ),
+      textTheme: const TextTheme(
+        displayLarge:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+        displayMedium:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+        displaySmall:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.bold),
+        headlineMedium:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+        headlineSmall:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+        titleLarge:
+            TextStyle(color: textPrimaryLight, fontWeight: FontWeight.w600),
+        bodyLarge: TextStyle(color: textPrimaryLight),
+        bodyMedium: TextStyle(color: textSecondaryLight),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: textPrimaryDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
       ),
-    ),
-    cardTheme: CardTheme(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      cardTheme: CardTheme(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
-    ),
-  );
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: textPrimaryDark,
+        showSelectedLabels: true,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: textSecondaryLight,
+      ),
+      tabBarTheme: const TabBarTheme(
+          labelColor: textPrimaryDark,
+          unselectedLabelColor: textPrimaryLight,
+          indicatorSize: TabBarIndicatorSize.label));
 
   // Dark theme
   static final ThemeData darkTheme = ThemeData(

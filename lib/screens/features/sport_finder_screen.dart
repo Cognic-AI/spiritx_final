@@ -380,12 +380,45 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Submit button
-            CustomButton(
-              text: 'Find My Sport',
-              isLoading: _isLoading,
-              onPressed: _findSports,
-            ),
+            ElevatedButton(
+                onPressed: _findSports,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (_isLoading)
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          else
+                            Row(children: [
+                              const Text('Find Sports'),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.search,
+                                color: Colors.white,
+                              ),
+                            ])
+                        ]),
+                  ],
+                )),
           ],
         ),
       ),
@@ -515,14 +548,49 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
         ),
         Padding(
           padding: const EdgeInsets.all(16),
-          child: CustomButton(
-            text: 'Start Over',
-            onPressed: () {
-              setState(() {
-                _recommendedSports = null;
-              });
-            },
-          ),
+          child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _recommendedSports = null;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (_isLoading)
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        else
+                          Row(children: [
+                            const Text('Start Over'),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.refresh,
+                              color: Colors.white,
+                            ),
+                          ])
+                      ]),
+                ],
+              )),
         ),
       ],
     );
