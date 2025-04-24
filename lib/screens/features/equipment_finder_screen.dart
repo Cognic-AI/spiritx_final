@@ -43,6 +43,9 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     'Equipment',
   ];
 
+  final TextEditingController _customSiteController = TextEditingController();
+  final TextEditingController _customTagController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +55,8 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _customSiteController.dispose();
+    _customTagController.dispose();
     super.dispose();
   }
 
@@ -163,6 +168,22 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     }
   }
 
+  void _addCustomSite() {
+    final site = _customSiteController.text.trim();
+    if (site.isNotEmpty && !_favoriteSites.contains(site)) {
+      _updateFavoriteSites(site, true);
+      _customSiteController.clear();
+    }
+  }
+
+  void _addCustomTag() {
+    final tag = _customTagController.text.trim();
+    if (tag.isNotEmpty && !_tags.contains(tag)) {
+      _addTag(tag);
+      _customTagController.clear();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -224,6 +245,16 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                   ),
                   const SizedBox(height: 8),
 
+                  // Add custom tag
+                  CustomTextField(
+                    controller: _customTagController,
+                    labelText: 'Add Custom Tag',
+                    prefixIcon: Icons.label,
+                    suffixIcon: Icons.add,
+                    onSuffixIconPressed: _addCustomTag,
+                  ),
+                  const SizedBox(height: 16),
+
                   // Favorite sites
                   const Text(
                     'Search in:',
@@ -246,6 +277,16 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
                         dense: true,
                       );
                     }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Add custom site
+                  CustomTextField(
+                    controller: _customSiteController,
+                    labelText: 'Add Custom Site',
+                    prefixIcon: Icons.link,
+                    suffixIcon: Icons.add,
+                    onSuffixIconPressed: _addCustomSite,
                   ),
                   const SizedBox(height: 16),
 
