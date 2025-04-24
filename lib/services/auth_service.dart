@@ -105,23 +105,14 @@ class AuthService extends ChangeNotifier {
 
   // Upload NIC image to Firebase Storage
   Future<String> _uploadNicImage(String uid, File image) async {
+    // Fallback to base64 encoding if Firebase Storage fails
     try {
-      Reference ref = _storage.ref().child('nic_images').child('$uid.jpg');
-      UploadTask uploadTask = ref.putFile(image);
-      TaskSnapshot snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading NIC image: $e');
-
-      // Fallback to base64 encoding if Firebase Storage fails
-      try {
-        List<int> imageBytes = await image.readAsBytes();
-        String base64Image = base64Encode(imageBytes);
-        return 'data:image/jpeg;base64,$base64Image';
-      } catch (e2) {
-        print('Error encoding image: $e2');
-        rethrow;
-      }
+      List<int> imageBytes = await image.readAsBytes();
+      String base64Image = base64Encode(imageBytes);
+      return 'data:image/jpeg;base64,$base64Image';
+    } catch (e2) {
+      print('Error encoding image: $e2');
+      rethrow;
     }
   }
 
