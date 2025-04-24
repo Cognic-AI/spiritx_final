@@ -6,7 +6,7 @@ import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();

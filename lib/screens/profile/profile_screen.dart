@@ -12,7 +12,7 @@ import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
