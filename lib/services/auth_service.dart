@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image/image.dart' as img;
 import 'package:sri_lanka_sports_app/models/user_model.dart';
 import 'dart:convert';
 
@@ -107,7 +108,13 @@ class AuthService extends ChangeNotifier {
   Future<String> _uploadNicImage(String uid, File image) async {
     // Fallback to base64 encoding if Firebase Storage fails
     try {
-      List<int> imageBytes = await image.readAsBytes();
+      // Resize the image to reduce its size
+      final img.Image originalImage =
+          img.decodeImage(await image.readAsBytes())!;
+      final img.Image resizedImage = img.copyResize(originalImage,
+          width: 300); // Resize to width of 300 pixels
+      List<int> imageBytes =
+          img.encodeJpg(resizedImage); // Convert resized image to bytes
       String base64Image = base64Encode(imageBytes);
       return 'data:image/jpeg;base64,$base64Image';
     } catch (e2) {

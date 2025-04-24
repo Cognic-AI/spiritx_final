@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sri_lanka_sports_app/models/equipment_model.dart';
+// import 'package:sri_lanka_sports_app/models/equipment_model.dart';
 import 'package:sri_lanka_sports_app/repositories/equipment_repository.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_text_field.dart';
@@ -18,7 +18,7 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   final List<String> _tags = [];
   List<String> _favoriteSites = [];
   bool _isLoading = false;
-  List<EquipmentModel>? _searchResults;
+  // List<EquipmentModel>? _searchResults;
 
   final List<String> _allPossibleSites = [
     'SportsSL.com',
@@ -88,6 +88,9 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
   }
 
   Future<void> _searchEquipment() async {
+    // setState(() {
+    //   isdone = false;
+    // });
     if (_searchController.text.isEmpty && _tags.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -102,16 +105,22 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
     });
 
     try {
-      final results = await _equipmentRepository.searchEquipment(
+      await _equipmentRepository.searchEquipment(
         searchTerm: _searchController.text.trim(),
         tags: _tags.isNotEmpty ? _tags : null,
         stores: _favoriteSites,
       );
 
       setState(() {
-        _searchResults = results;
+        // _searchResults = results;
         _isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Equipment search completed and email sent successfully!'),
+        ),
+      );
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -336,338 +345,338 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
             ),
 
             // Results
-            if (_searchResults != null) ...[
-              const Divider(),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Results (${_searchResults!.length})',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.filter_list),
-                      label: const Text('Filter'),
-                      onPressed: () {
-                        // Show filter options
-                        _showFilterOptions();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _searchResults!.length,
-                  itemBuilder: (context, index) {
-                    final item = _searchResults![index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Product image
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: item.imageUrl != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(
-                                        item.imageUrl!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return Icon(
-                                            _getEquipmentIcon(item.name),
-                                            size: 40,
-                                            color: Colors.grey,
-                                          );
-                                        },
-                                      ),
-                                    )
-                                  : Icon(
-                                      _getEquipmentIcon(item.name),
-                                      size: 40,
-                                      color: Colors.grey,
-                                    ),
-                            ),
-                            const SizedBox(width: 16),
+            // if (_searchResults != null) ...[
+            //   const Divider(),
+            //   Padding(
+            //     padding:
+            //         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            //     child: Row(
+            //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //       children: [
+            //         Text(
+            //           'Results (${_searchResults!.length})',
+            //           style: const TextStyle(
+            //             fontSize: 16,
+            //             fontWeight: FontWeight.bold,
+            //           ),
+            //         ),
+            //         TextButton.icon(
+            //           icon: const Icon(Icons.filter_list),
+            //           label: const Text('Filter'),
+            //           onPressed: () {
+            //             // Show filter options
+            //             _showFilterOptions();
+            //           },
+            //         ),
+            //       ],
+            //     ),
+            //   ),
+            //   Expanded(
+            //     child: ListView.builder(
+            //       padding: const EdgeInsets.all(16),
+            //       itemCount: _searchResults!.length,
+            //       itemBuilder: (context, index) {
+            //         final item = _searchResults![index];
+            //         return Card(
+            //           margin: const EdgeInsets.only(bottom: 16),
+            //           child: Padding(
+            //             padding: const EdgeInsets.all(16),
+            //             child: Row(
+            //               crossAxisAlignment: CrossAxisAlignment.start,
+            //               children: [
+            //                 // Product image
+            //                 Container(
+            //                   width: 80,
+            //                   height: 80,
+            //                   decoration: BoxDecoration(
+            //                     color: Colors.grey[200],
+            //                     borderRadius: BorderRadius.circular(8),
+            //                   ),
+            //                   child: item.imageUrl != null
+            //                       ? ClipRRect(
+            //                           borderRadius: BorderRadius.circular(8),
+            //                           child: Image.network(
+            //                             item.imageUrl!,
+            //                             fit: BoxFit.cover,
+            //                             errorBuilder:
+            //                                 (context, error, stackTrace) {
+            //                               return Icon(
+            //                                 _getEquipmentIcon(item.name),
+            //                                 size: 40,
+            //                                 color: Colors.grey,
+            //                               );
+            //                             },
+            //                           ),
+            //                         )
+            //                       : Icon(
+            //                           _getEquipmentIcon(item.name),
+            //                           size: 40,
+            //                           color: Colors.grey,
+            //                         ),
+            //                 ),
+            //                 const SizedBox(width: 16),
 
-                            // Product details
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.name,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item.price,
-                                    style: TextStyle(
-                                      color: AppTheme.secondaryColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.store,
-                                        size: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        item.store,
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.star,
-                                        size: 16,
-                                        color: Colors.amber,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        item.rating.toString(),
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: OutlinedButton(
-                                          onPressed: () {
-                                            // View details
-                                            _showEquipmentDetails(item);
-                                          },
-                                          child: const Text('Details'),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            // Open URL
-                                            _openEquipmentUrl(item);
-                                          },
-                                          child: const Text('Visit'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
+            //                 // Product details
+            //                 Expanded(
+            //                   child: Column(
+            //                     crossAxisAlignment: CrossAxisAlignment.start,
+            //                     children: [
+            //                       Text(
+            //                         item.name,
+            //                         style: const TextStyle(
+            //                           fontSize: 16,
+            //                           fontWeight: FontWeight.bold,
+            //                         ),
+            //                       ),
+            //                       const SizedBox(height: 4),
+            //                       Text(
+            //                         item.price,
+            //                         style: TextStyle(
+            //                           color: AppTheme.secondaryColor,
+            //                           fontWeight: FontWeight.bold,
+            //                         ),
+            //                       ),
+            //                       const SizedBox(height: 4),
+            //                       Row(
+            //                         children: [
+            //                           Icon(
+            //                             Icons.store,
+            //                             size: 16,
+            //                             color: Colors.grey[600],
+            //                           ),
+            //                           const SizedBox(width: 4),
+            //                           Text(
+            //                             item.store,
+            //                             style: TextStyle(
+            //                               color: Colors.grey[600],
+            //                             ),
+            //                           ),
+            //                         ],
+            //                       ),
+            //                       const SizedBox(height: 4),
+            //                       Row(
+            //                         children: [
+            //                           Icon(
+            //                             Icons.star,
+            //                             size: 16,
+            //                             color: Colors.amber,
+            //                           ),
+            //                           const SizedBox(width: 4),
+            //                           Text(
+            //                             item.rating.toString(),
+            //                             style: TextStyle(
+            //                               color: Colors.grey[600],
+            //                             ),
+            //                           ),
+            //                         ],
+            //                       ),
+            //                       const SizedBox(height: 8),
+            //                       Row(
+            //                         children: [
+            //                           Expanded(
+            //                             child: OutlinedButton(
+            //                               onPressed: () {
+            //                                 // View details
+            //                                 _showEquipmentDetails(item);
+            //                               },
+            //                               child: const Text('Details'),
+            //                             ),
+            //                           ),
+            //                           const SizedBox(width: 8),
+            //                           Expanded(
+            //                             child: ElevatedButton(
+            //                               onPressed: () {
+            //                                 // Open URL
+            //                                 _openEquipmentUrl(item);
+            //                               },
+            //                               child: const Text('Visit'),
+            //                             ),
+            //                           ),
+            //                         ],
+            //                       ),
+            //                     ],
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         );
+            //       },
+            //     ),
+            //   ),
+            // ],
           ],
         ),
       ),
     );
   }
 
-  void _showFilterOptions() {
-    // Show filter options dialog
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Filter Options'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Filter options would go here
-              const Text('Sort by:'),
-              const SizedBox(height: 8),
-              ListTile(
-                title: const Text('Price: Low to High'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _sortResults('price_asc');
-                },
-              ),
-              ListTile(
-                title: const Text('Price: High to Low'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _sortResults('price_desc');
-                },
-              ),
-              ListTile(
-                title: const Text('Rating: High to Low'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _sortResults('rating_desc');
-                },
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showFilterOptions() {
+  //   // Show filter options dialog
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: const Text('Filter Options'),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             // Filter options would go here
+  //             const Text('Sort by:'),
+  //             const SizedBox(height: 8),
+  //             ListTile(
+  //               title: const Text('Price: Low to High'),
+  //               onTap: () {
+  //                 Navigator.pop(context);
+  //                 _sortResults('price_asc');
+  //               },
+  //             ),
+  //             ListTile(
+  //               title: const Text('Price: High to Low'),
+  //               onTap: () {
+  //                 Navigator.pop(context);
+  //                 _sortResults('price_desc');
+  //               },
+  //             ),
+  //             ListTile(
+  //               title: const Text('Rating: High to Low'),
+  //               onTap: () {
+  //                 Navigator.pop(context);
+  //                 _sortResults('rating_desc');
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text('Cancel'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _sortResults(String sortBy) {
-    if (_searchResults == null) return;
+  // void _sortResults(String sortBy) {
+  //   if (_searchResults == null) return;
 
-    setState(() {
-      switch (sortBy) {
-        case 'price_asc':
-          _searchResults!.sort((a, b) {
-            // Extract numeric value from price string
-            double priceA = _extractPrice(a.price);
-            double priceB = _extractPrice(b.price);
-            return priceA.compareTo(priceB);
-          });
-          break;
-        case 'price_desc':
-          _searchResults!.sort((a, b) {
-            // Extract numeric value from price string
-            double priceA = _extractPrice(a.price);
-            double priceB = _extractPrice(b.price);
-            return priceB.compareTo(priceA);
-          });
-          break;
-        case 'rating_desc':
-          _searchResults!.sort((a, b) => b.rating.compareTo(a.rating));
-          break;
-      }
-    });
-  }
+  //   setState(() {
+  //     switch (sortBy) {
+  //       case 'price_asc':
+  //         _searchResults!.sort((a, b) {
+  //           // Extract numeric value from price string
+  //           double priceA = _extractPrice(a.price);
+  //           double priceB = _extractPrice(b.price);
+  //           return priceA.compareTo(priceB);
+  //         });
+  //         break;
+  //       case 'price_desc':
+  //         _searchResults!.sort((a, b) {
+  //           // Extract numeric value from price string
+  //           double priceA = _extractPrice(a.price);
+  //           double priceB = _extractPrice(b.price);
+  //           return priceB.compareTo(priceA);
+  //         });
+  //         break;
+  //       case 'rating_desc':
+  //         _searchResults!.sort((a, b) => b.rating.compareTo(a.rating));
+  //         break;
+  //     }
+  //   });
+  // }
 
-  double _extractPrice(String priceString) {
-    // Extract numeric value from price string (e.g., "Rs. 15,000" -> 15000)
-    try {
-      String numericString = priceString.replaceAll(RegExp(r'[^0-9.]'), '');
-      return double.parse(numericString);
-    } catch (e) {
-      return 0.0;
-    }
-  }
+  // double _extractPrice(String priceString) {
+  //   // Extract numeric value from price string (e.g., "Rs. 15,000" -> 15000)
+  //   try {
+  //     String numericString = priceString.replaceAll(RegExp(r'[^0-9.]'), '');
+  //     return double.parse(numericString);
+  //   } catch (e) {
+  //     return 0.0;
+  //   }
+  // }
 
-  void _showEquipmentDetails(EquipmentModel equipment) {
-    // Show equipment details dialog
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(equipment.name),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Price: ${equipment.price}'),
-              const SizedBox(height: 8),
-              Text('Store: ${equipment.store}'),
-              const SizedBox(height: 8),
-              Text('Rating: ${equipment.rating}'),
-              const SizedBox(height: 8),
-              if (equipment.tags != null && equipment.tags!.isNotEmpty) ...[
-                const Text('Tags:'),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
-                  children: equipment.tags!.map((tag) {
-                    return Chip(
-                      label: Text(tag),
-                      labelStyle: const TextStyle(fontSize: 12),
-                      padding: EdgeInsets.zero,
-                    );
-                  }).toList(),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _openEquipmentUrl(equipment);
-              },
-              child: const Text('Visit Store'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showEquipmentDetails(EquipmentModel equipment) {
+  //   // Show equipment details dialog
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: Text(equipment.name),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text('Price: ${equipment.price}'),
+  //             const SizedBox(height: 8),
+  //             Text('Store: ${equipment.store}'),
+  //             const SizedBox(height: 8),
+  //             Text('Rating: ${equipment.rating}'),
+  //             const SizedBox(height: 8),
+  //             if (equipment.tags != null && equipment.tags!.isNotEmpty) ...[
+  //               const Text('Tags:'),
+  //               const SizedBox(height: 4),
+  //               Wrap(
+  //                 spacing: 4,
+  //                 runSpacing: 4,
+  //                 children: equipment.tags!.map((tag) {
+  //                   return Chip(
+  //                     label: Text(tag),
+  //                     labelStyle: const TextStyle(fontSize: 12),
+  //                     padding: EdgeInsets.zero,
+  //                   );
+  //                 }).toList(),
+  //               ),
+  //             ],
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //             },
+  //             child: const Text('Close'),
+  //           ),
+  //           ElevatedButton(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               _openEquipmentUrl(equipment);
+  //             },
+  //             child: const Text('Visit Store'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
-  void _openEquipmentUrl(EquipmentModel equipment) {
-    // In a real app, this would open the URL in a browser
-    // For now, just show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${equipment.url ?? equipment.store}'),
-      ),
-    );
-  }
+  // void _openEquipmentUrl(EquipmentModel equipment) {
+  //   // In a real app, this would open the URL in a browser
+  //   // For now, just show a snackbar
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(
+  //       content: Text('Opening ${equipment.url ?? equipment.store}'),
+  //     ),
+  //   );
+  // }
 
-  IconData _getEquipmentIcon(String name) {
-    name = name.toLowerCase();
+  // IconData _getEquipmentIcon(String name) {
+  //   name = name.toLowerCase();
 
-    if (name.contains('cricket') || name.contains('bat')) {
-      return Icons.sports_cricket;
-    } else if (name.contains('football') || name.contains('soccer')) {
-      return Icons.sports_soccer;
-    } else if (name.contains('swimming') || name.contains('goggles')) {
-      return Icons.pool;
-    } else if (name.contains('running') || name.contains('shoes')) {
-      return Icons.directions_run;
-    } else if (name.contains('protein') || name.contains('supplement')) {
-      return Icons.fitness_center;
-    } else {
-      return Icons.sports;
-    }
-  }
+  //   if (name.contains('cricket') || name.contains('bat')) {
+  //     return Icons.sports_cricket;
+  //   } else if (name.contains('football') || name.contains('soccer')) {
+  //     return Icons.sports_soccer;
+  //   } else if (name.contains('swimming') || name.contains('goggles')) {
+  //     return Icons.pool;
+  //   } else if (name.contains('running') || name.contains('shoes')) {
+  //     return Icons.directions_run;
+  //   } else if (name.contains('protein') || name.contains('supplement')) {
+  //     return Icons.fitness_center;
+  //   } else {
+  //     return Icons.sports;
+  //   }
+  // }
 }

@@ -7,7 +7,7 @@ import 'package:sri_lanka_sports_app/screens/auth/login_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/personal_info_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/settings_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
-import 'package:sri_lanka_sports_app/services/dummy_data_service.dart';
+// import 'package:sri_lanka_sports_app/services/dummy_data_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 
@@ -21,9 +21,9 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   File? _profileImage;
   bool _isLoading = false;
-  bool _isGeneratingDummyData = false;
+  // bool _isGeneratingDummyData = false;
   final ImagePicker _picker = ImagePicker();
-  final DummyDataService _dummyDataService = DummyDataService();
+  // final DummyDataService _dummyDataService = DummyDataService();
 
   Future<void> _pickProfileImage() async {
     final XFile? image = await _picker.pickImage(
@@ -97,35 +97,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _generateDummyData() async {
-    try {
-      setState(() {
-        _isGeneratingDummyData = true;
-      });
+  // Future<void> _generateDummyData() async {
+  //   try {
+  //     setState(() {
+  //       _isGeneratingDummyData = true;
+  //     });
 
-      await _dummyDataService.generateDummyData();
+  //     await _dummyDataService.generateDummyData();
 
-      if (!mounted) return;
+  //     if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dummy data generated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error generating dummy data: ${e.toString()}'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isGeneratingDummyData = false;
-      });
-    }
-  }
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Dummy data generated successfully'),
+  //         backgroundColor: Colors.green,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Error generating dummy data: ${e.toString()}'),
+  //         backgroundColor: AppTheme.errorColor,
+  //       ),
+  //     );
+  //   } finally {
+  //     setState(() {
+  //       _isGeneratingDummyData = false;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -266,42 +266,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 24),
 
                     // Generate dummy data button
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.amber),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Developer Tools',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Generate dummy data for testing purposes. This will create sample data for all collections in the database.',
-                          ),
-                          const SizedBox(height: 16),
-                          CustomButton(
-                            text: _isGeneratingDummyData
-                                ? 'Generating Data...'
-                                : 'Generate Dummy Data',
-                            icon: Icons.data_array,
-                            isLoading: _isGeneratingDummyData,
-                            onPressed: _generateDummyData,
-                            color: Colors.amber[700],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    // Container(
+                    //   width: double.infinity,
+                    //   padding: const EdgeInsets.all(16),
+                    //   decoration: BoxDecoration(
+                    //     color: Colors.amber.withOpacity(0.2),
+                    //     borderRadius: BorderRadius.circular(12),
+                    //     border: Border.all(color: Colors.amber),
+                    //   ),
+                    //   child: Column(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       const Text(
+                    //         'Developer Tools',
+                    //         style: TextStyle(
+                    //           fontSize: 18,
+                    //           fontWeight: FontWeight.bold,
+                    //         ),
+                    //       ),
+                    //       const SizedBox(height: 8),
+                    //       const Text(
+                    //         'Generate dummy data for testing purposes. This will create sample data for all collections in the database.',
+                    //       ),
+                    //       const SizedBox(height: 16),
+                    //       CustomButton(
+                    //         text: _isGeneratingDummyData
+                    //             ? 'Generating Data...'
+                    //             : 'Generate Dummy Data',
+                    //         icon: Icons.data_array,
+                    //         isLoading: _isGeneratingDummyData,
+                    //         onPressed: _generateDummyData,
+                    //         color: Colors.amber[700],
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 24),
 
                     // Profile sections
                     const Divider(),
