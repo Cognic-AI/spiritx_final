@@ -10,9 +10,9 @@ class PersonalInfoScreen extends StatefulWidget {
   final UserModel userModel;
 
   const PersonalInfoScreen({
-    Key? key,
+    super.key,
     required this.userModel,
-  }) : super(key: key);
+  });
 
   @override
   State<PersonalInfoScreen> createState() => _PersonalInfoScreenState();

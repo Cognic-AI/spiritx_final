@@ -6,7 +6,7 @@ import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class EducationScreen extends StatefulWidget {
-  const EducationScreen({Key? key}) : super(key: key);
+  const EducationScreen({super.key});
 
   @override
   State<EducationScreen> createState() => _EducationScreenState();
@@ -547,9 +547,9 @@ class TechniqueDetailScreen extends StatelessWidget {
   final EducationModel technique;
 
   const TechniqueDetailScreen({
-    Key? key,
+    super.key,
     required this.technique,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -821,9 +821,9 @@ class ScienceDetailScreen extends StatelessWidget {
   final EducationModel science;
 
   const ScienceDetailScreen({
-    Key? key,
+    super.key,
     required this.science,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

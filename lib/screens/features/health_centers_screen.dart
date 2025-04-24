@@ -7,7 +7,7 @@ import 'package:sri_lanka_sports_app/repositories/health_center_repository.dart'
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 
 class HealthCentersScreen extends StatefulWidget {
-  const HealthCentersScreen({Key? key}) : super(key: key);
+  const HealthCentersScreen({super.key});
 
   @override
   State<HealthCentersScreen> createState() => _HealthCentersScreenState();
@@ -523,7 +523,7 @@ class _HealthCentersScreenState extends State<HealthCentersScreen>
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
 
               const SizedBox(height: 16),
