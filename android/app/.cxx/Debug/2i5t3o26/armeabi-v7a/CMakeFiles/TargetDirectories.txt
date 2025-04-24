@@ -1,0 +1,2 @@
+C:/1 Disk D/Projects/Flutter_Projects/spiritx_final/android/app/.cxx/Debug/2i5t3o26/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/1 Disk D/Projects/Flutter_Projects/spiritx_final/android/app/.cxx/Debug/2i5t3o26/armeabi-v7a/CMakeFiles/rebuild_cache.dir
