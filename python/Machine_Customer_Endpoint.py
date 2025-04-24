@@ -66,7 +66,13 @@ def recommend():
         # Get request data and create machine customer
         print("Getting request data...")
         request_data = request.get_json()
+        if (request_data["custom_domains"] == []):
+            request_data["custom_domains"] = None
         print(f"Request data received")
+        print("Item Name:", request_data["item_name"])
+        print("Custom Domains:", request_data["custom_domains"])
+        print("Tags:", request_data["tags"])
+        print("Location:", request_data["location"])        
 
         database1 = db.FirestoreDB()
         state,csv_file = database1.check_csv(request_data['item_name'])

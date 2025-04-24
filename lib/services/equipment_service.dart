@@ -3,29 +3,46 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:sri_lanka_sports_app/models/equipment_model.dart';
+import 'package:flutter/material.dart';
 
 class EquipmentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
-  // URL for the equipment API
-  final String _equipmentApiUrl = 'https://your-equipment-api-endpoint.com/search';
+  // URL for the equipment recommendation API
+  final String _recommendationApiUrl = 'http://YOUR_IP:8000/api/recommend';
   
   // Search for equipment
-  Future<List<EquipmentModel>> searchEquipment(EquipmentSearchQuery query) async {
+  Future<List<EquipmentModel>> searchEquipment(EquipmentSearchQuery query, BuildContext context) async {
     try {
       // Save search query to Firestore
       await _saveSearchQuery(query);
       
-      // Call equipment API to get results
+      // Get user's location from Firestore
+      double? lat;
+      double? lon;
+      if (_auth.currentUser != null) {
+        DocumentSnapshot userDoc = await _firestore.collection('users').doc(_auth.currentUser!.uid).get();
+        if (userDoc.exists) {
+          Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
+          lat = userData['latitude'];
+          lon = userData['longitude'];
+        }
+      }
+
+      // Prepare data for the recommendation API
+      final requestBody = {
+        'item_name': query.searchTerm ?? '',
+        'custom_domains': query.stores,
+        'tags': query.tags ?? [],
+        'location': [lat ?? 0.0, lon ?? 0.0],
+      };
+
+      // Call recommendation API to get results
       final response = await http.post(
-        Uri.parse(_equipmentApiUrl),
+        Uri.parse(_recommendationApiUrl),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'searchTerm': query.searchTerm,
-          'tags': query.tags,
-          'stores': query.stores,
-        }),
+        body: json.encode(requestBody),
       );
       
       if (response.statusCode == 200) {
@@ -36,10 +53,18 @@ class EquipmentService {
           
           List<EquipmentModel> equipmentResults = results.map((result) {
             // Generate a unique ID for each result
-            result['id'] = result['id'] ?? '${result['name']}_${result['store']}';
+            result['id'] = result['id'] ?? '${result['item_name']}_${result['store']}';
             return EquipmentModel.fromJson(result);
           }).toList();
           
+          // Show a message indicating that the recommended products are sent to the user's email
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Your recommended products are sent to your email!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
           return equipmentResults;
         }
       }
