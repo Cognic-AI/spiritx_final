@@ -9,10 +9,11 @@ class ChatbotService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // URL for the chatbot API
-  final String _chatbotApiUrl = 'https://your-chatbot-api-endpoint.com/chat';
+  final String _chatbotApiUrl = 'http://10.10.4.99:8001/chat';
 
   // Send message to chatbot
-  Future<ChatMessage> sendMessage(String sessionId, String message) async {
+  Future<ChatMessage> sendMessage(
+      String sessionId, String message, String language) async {
     try {
       // Create user message
       ChatMessage userMessage = ChatMessage(
@@ -33,6 +34,7 @@ class ChatbotService {
           'message': message,
           'sessionId': sessionId,
           'userId': _auth.currentUser?.uid,
+          'language': language
         }),
       );
 

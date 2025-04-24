@@ -5,8 +5,9 @@ class ChatbotRepository {
   final ChatbotService _chatbotService = ChatbotService();
 
   // Send message to chatbot
-  Future<ChatMessage> sendMessage(String sessionId, String message) async {
-    return await _chatbotService.sendMessage(sessionId, message);
+  Future<ChatMessage> sendMessage(
+      String sessionId, String message, String language) async {
+    return await _chatbotService.sendMessage(sessionId, message, language);
   }
 
   // Get chat session

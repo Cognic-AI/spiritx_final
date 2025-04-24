@@ -30,6 +30,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   String _sessionId = '';
   List<ChatMessage> _messages = [];
   String _sessionTopic = '';
+  String _selectedLanguage = 'english';
 
   @override
   void initState() {
@@ -136,7 +137,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     return topic;
   }
 
-  Future<void> _sendMessage() async {
+  Future<void> _sendMessage(String language) async {
     if (_messageController.text.trim().isEmpty) return;
 
     final userMessage = _messageController.text.trim();
@@ -158,9 +159,9 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _scrollToBottom();
 
     try {
-      // Send message to chatbot and get response
-      final botMessage =
-          await _chatbotRepository.sendMessage(_sessionId, userMessage);
+      // Send message to chatbot with selected language and get response
+      final botMessage = await _chatbotRepository.sendMessage(
+          _sessionId, userMessage, language);
 
       // Update session topic if this is the first user message
       if (_sessionTopic == 'New Conversation' &&
@@ -216,6 +217,22 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
       height: MediaQuery.of(context).size.height * 0.79,
       child: Column(
         children: [
+          // Language Selector Dropdown
+          DropdownButton<String>(
+            value: _selectedLanguage,
+            items: <String>['english', 'sinhala', 'tamil']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedLanguage = newValue!;
+              });
+            },
+          ),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -320,12 +337,12 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
                   child: CustomTextField(
                     controller: _messageController,
                     hintText: 'Ask me anything about sports...',
-                    onSubmitted: (_) => _sendMessage(),
+                    onSubmitted: (_) => _sendMessage(_selectedLanguage),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FloatingActionButton(
-                  onPressed: _sendMessage,
+                  onPressed: () => _sendMessage(_selectedLanguage),
                   child: const Icon(Icons.send),
                 ),
               ],
@@ -334,8 +351,6 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
         ],
       ),
     );
-    //   ),
-    // );
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
