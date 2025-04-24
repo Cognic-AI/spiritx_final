@@ -28,6 +28,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   late TextEditingController _heightController;
   late TextEditingController _weightController;
   late TextEditingController _emergencyContactController;
+  late TextEditingController _latitudeController;
+  late TextEditingController _longitudeController;
 
   bool _isLoading = false;
   bool _isEditing = false;
@@ -51,6 +53,10 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         text: widget.userModel.weight?.toString() ?? 'Not defined yet');
     _emergencyContactController = TextEditingController(
         text: widget.userModel.emergencyContact ?? 'Not defined yet');
+    _latitudeController = TextEditingController(
+        text: widget.userModel.latitude?.toString() ?? 'Not defined yet');
+    _longitudeController = TextEditingController(
+        text: widget.userModel.longitude?.toString() ?? 'Not defined yet');
   }
 
   @override
@@ -63,6 +69,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     _heightController.dispose();
     _weightController.dispose();
     _emergencyContactController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
     super.dispose();
   }
 
@@ -107,6 +115,19 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       String? emergencyContact = _emergencyContactController.text;
       if (emergencyContact == 'Not defined yet') emergencyContact = null;
 
+      // Extract latitude and longitude values
+      String? latitudeText = _latitudeController.text;
+      double? latitude;
+      if (latitudeText != 'Not defined yet') {
+        latitude = double.tryParse(latitudeText);
+      }
+
+      String? longitudeText = _longitudeController.text;
+      double? longitude;
+      if (longitudeText != 'Not defined yet') {
+        longitude = double.tryParse(longitudeText);
+      }
+
       await authService.updateUserProfile(
         name: _nameController.text,
         phone: phone,
@@ -115,6 +136,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
         height: height,
         weight: weight,
         emergencyContact: emergencyContact,
+        latitude: latitude,
+        longitude: longitude,
       );
 
       if (!mounted) return;
@@ -293,6 +316,26 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                       enabled: _isEditing,
                     ),
                     const SizedBox(height: 24),
+
+                    // Latitude field
+                    CustomTextField(
+                      controller: _latitudeController,
+                      labelText: 'Latitude',
+                      prefixIcon: Icons.location_on,
+                      keyboardType: TextInputType.number,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Longitude field
+                    CustomTextField(
+                      controller: _longitudeController,
+                      labelText: 'Longitude',
+                      prefixIcon: Icons.location_on,
+                      keyboardType: TextInputType.number,
+                      enabled: _isEditing,
+                    ),
+                    const SizedBox(height: 16),
 
                     if (_isEditing)
                       CustomButton(

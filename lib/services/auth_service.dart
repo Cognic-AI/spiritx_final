@@ -202,6 +202,8 @@ class AuthService extends ChangeNotifier {
     int? height,
     int? weight,
     String? emergencyContact,
+    double? latitude,
+    double? longitude,
   }) async {
     try {
       if (_userModel == null || currentUser == null) {
@@ -262,6 +264,14 @@ class AuthService extends ChangeNotifier {
         updateData['emergencyContact'] = emergencyContact;
       }
 
+      if (latitude != null) {
+        updateData['latitude'] = latitude;
+      }
+
+      if (longitude != null) {
+        updateData['longitude'] = longitude;
+      }
+
       if (updateData.isNotEmpty) {
         await _firestore
             .collection('users')
@@ -281,6 +291,8 @@ class AuthService extends ChangeNotifier {
           height: height ?? _userModel!.height,
           weight: weight ?? _userModel!.weight,
           emergencyContact: emergencyContact ?? _userModel!.emergencyContact,
+          latitude: latitude ?? _userModel!.latitude,
+          longitude: longitude ?? _userModel!.longitude,
         );
 
         notifyListeners();

@@ -14,6 +14,8 @@ class UserModel {
   final int? height;
   final int? weight;
   final String? emergencyContact;
+  final double? latitude;
+  final double? longitude;
 
   UserModel({
     required this.uid,
@@ -31,6 +33,8 @@ class UserModel {
     this.height,
     this.weight,
     this.emergencyContact,
+    this.latitude,
+    this.longitude,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +58,8 @@ class UserModel {
       height: json['height'],
       weight: json['weight'],
       emergencyContact: json['emergencyContact'],
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
     );
   }
 
@@ -74,6 +80,8 @@ class UserModel {
       'height': height,
       'weight': weight,
       'emergencyContact': emergencyContact,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 
@@ -93,6 +101,8 @@ class UserModel {
     int? height,
     int? weight,
     String? emergencyContact,
+    double? latitude,
+    double? longitude,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -111,6 +121,8 @@ class UserModel {
       height: height ?? this.height,
       weight: weight ?? this.weight,
       emergencyContact: emergencyContact ?? this.emergencyContact,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
     );
   }
 }
