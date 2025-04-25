@@ -6,6 +6,7 @@ import 'package:sri_lanka_sports_app/screens/features/education_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/equipment_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/health_centers_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/notifications_screen.dart';
+import 'package:sri_lanka_sports_app/screens/features/rtp_calculator_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
@@ -236,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-// Equipment Finder
+            // Equipment Finder
             _buildFeatureCard(
               context,
               title: 'Equipment Finder',
@@ -256,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-// Education
+            // Education
             _buildFeatureCard(
               context,
               title: 'Sports Education',
@@ -271,6 +272,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const EducationScreen()),
+                );
+              },
+            ),
+
+            // RTP Calculator
+            _buildFeatureCard(
+              context,
+              title: 'RTP Calculator',
+              icon: Icons.calculate,
+              color: Colors.purple.shade400,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.purple.shade400, Colors.purple.shade600],
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const RtpCalculatorScreen()),
                 );
               },
             ),
