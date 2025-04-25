@@ -30,7 +30,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   String _sessionId = '';
   List<ChatMessage> _messages = [];
   String _sessionTopic = '';
-  String _selectedLanguage = 'english';
+  String _selectedLanguage = 'English';
 
   @override
   void initState() {
