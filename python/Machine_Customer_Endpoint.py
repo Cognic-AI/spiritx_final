@@ -26,34 +26,6 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-def csv_to_list_firebase(csv):
-    """
-    Converts a CSV file containing product data into a list of Item objects.
-    
-    Args:
-        csv_file_path (str): Path to the CSV file
-        
-    Returns:
-        list: List of Item objects containing product information
-    """
-    df = csv
-    df = df.fillna('')  # Replace NaN values with empty strings
-    items_list = []
-    for _, row in df.iterrows():
-        item = Item(
-            name=row['product_name'],
-            price=float(row['price']), 
-            description=row['description'],
-            link=row['product_url'],
-            rate=float(row['product_rating']) if row['product_rating'] != '' else 0,
-            image_link=row['image'],
-            currency=row['currency']
-        )
-        # Only add items that have at least one of: name, price, or link
-        if item.name != '' or item.price !='' or item.link != '':
-            items_list.append(item)
-    return items_list
-
 @app.route('/api/recommend', methods=['POST'])
 def recommend():
     try:
@@ -111,6 +83,34 @@ def recommend():
 def health(): 
     print("got the request")
     return jsonify({"status": "healthy"}),200
+
+def csv_to_list_firebase(csv):
+    """
+    Converts a CSV file containing product data into a list of Item objects.
+    
+    Args:
+        csv_file_path (str): Path to the CSV file
+        
+    Returns:
+        list: List of Item objects containing product information
+    """
+    df = csv
+    df = df.fillna('')  # Replace NaN values with empty strings
+    items_list = []
+    for _, row in df.iterrows():
+        item = Item(
+            name=row['product_name'],
+            price=float(row['price']), 
+            description=row['description'],
+            link=row['product_url'],
+            rate=float(row['product_rating']) if row['product_rating'] != '' else 0,
+            image_link=row['image'],
+            currency=row['currency']
+        )
+        # Only add items that have at least one of: name, price, or link
+        if item.name != '' or item.price !='' or item.link != '':
+            items_list.append(item)
+    return items_list
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0",debug=False, port=8000, threaded=True, use_reloader=False)

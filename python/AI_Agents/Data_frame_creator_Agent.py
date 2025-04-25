@@ -155,6 +155,6 @@ def json_to_csv(item_name: str,request_id: str) -> None:
 
 # Example usage
 # start_time = time.time()
-# json_to_csv("Kookaburra Cricket bat","1234567898")
+# json_to_csv("Yonex Badminton Racquet","6ae510e6-5bdb-431b-aae3-20c52b48fe0e")
 # end_time = time.time()
 # print(f"Time taken: {end_time - start_time:.2f} seconds")

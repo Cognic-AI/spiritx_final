@@ -78,13 +78,12 @@ def generate_search_results(prompt: str, custom_domains: List[str], tags: List[s
             for result in tavily_context['results']:
                 if 'url' in result:
                     tavily_context_results.append(result['url'])
-    else:
-        # If no custom domains, do a general search
-        tavily_context = tavily_client.search(query=f"{search_query} location:{country_code}", search_depth="advanced", max_results=100, exclude_domains = ["https://www.facebook.com"])
-        print(tavily_context)
-        for result in tavily_context['results']:
-            if 'url' in result:
-                tavily_context_results.append(result['url'])
+    # If no custom domains, do a general search
+    tavily_context = tavily_client.search(query=f"{search_query} location:{country_code}", search_depth="advanced", max_results=100, exclude_domains = ["https://www.facebook.com"])
+    print(tavily_context)
+    for result in tavily_context['results']:
+        if 'url' in result:
+            tavily_context_results.append(result['url'])
 
     print("tavily_context_results: ", tavily_context_results)
 
