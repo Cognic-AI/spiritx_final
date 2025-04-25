@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sri_lanka_sports_app/models/rtp_calculator_model.dart';
+import 'package:sri_lanka_sports_app/services/rtp_report_service.dart';
 import 'package:sri_lanka_sports_app/utils/app_theme.dart';
 import 'package:sri_lanka_sports_app/widgets/custom_button.dart';
 
@@ -870,15 +871,79 @@ class _RtpCalculatorScreenState extends State<RtpCalculatorScreen> {
   }
 }
 
-class RtpResultsScreen extends StatelessWidget {
+class RtpResultsScreen extends StatefulWidget {
   final AnkleInjuryAssessment assessment;
 
   const RtpResultsScreen({super.key, required this.assessment});
 
   @override
-  Widget build(BuildContext context) {
-    final plan = _generateRehabPlan(assessment);
+  State<RtpResultsScreen> createState() => _RtpResultsScreenState();
+}
 
+class _RtpResultsScreenState extends State<RtpResultsScreen> {
+  late final RehabilitationPlan _plan;
+  final RtpReportService _rtpReportService = RtpReportService();
+  bool _isSaving = false;
+  bool _saveSuccess = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _plan = _generateRehabPlan(widget.assessment);
+  }
+
+  Future<void> _savePlan() async {
+    setState(() {
+      _isSaving = true;
+      _saveSuccess = false;
+      _errorMessage = null;
+    });
+
+    try {
+      final result =
+          await _rtpReportService.saveRtpReport(_plan, widget.assessment);
+
+      setState(() {
+        _isSaving = false;
+        _saveSuccess = result;
+        if (!result) {
+          _errorMessage = 'Failed to save report. Please try again.';
+        }
+      });
+
+      if (result) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Plan saved successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage ?? 'Failed to save report'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
+        _errorMessage = 'Error: ${e.toString()}';
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Recovery Plan'),
@@ -925,7 +990,7 @@ class RtpResultsScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '${plan.estimatedDaysToReturn} days',
+                                '${_plan.estimatedDaysToReturn} days',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20,
@@ -937,7 +1002,7 @@ class RtpResultsScreen extends StatelessWidget {
                       ),
                       const Divider(height: 32),
                       Text(
-                        plan.title,
+                        _plan.title,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
@@ -945,7 +1010,7 @@ class RtpResultsScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        plan.description,
+                        _plan.description,
                         style: const TextStyle(
                           color: Colors.grey,
                         ),
@@ -957,7 +1022,7 @@ class RtpResultsScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Bracing recommendations
-              if (plan.bracingRecommendations.isNotEmpty) ...[
+              if (_plan.bracingRecommendations.isNotEmpty) ...[
                 const Text(
                   'Bracing Recommendations',
                   style: TextStyle(
@@ -975,7 +1040,7 @@ class RtpResultsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...plan.bracingRecommendations
+                        ..._plan.bracingRecommendations
                             .map((recommendation) =>
                                 _buildBulletPoint(recommendation))
                             .toList(),
@@ -997,7 +1062,7 @@ class RtpResultsScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Phase cards
-              ...plan.phases
+              ..._plan.phases
                   .map((phase) => _buildPhaseCard(context, phase))
                   .toList(),
 
@@ -1012,7 +1077,7 @@ class RtpResultsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              ...plan.precautions
+              ..._plan.precautions
                   .map((precaution) => _buildBulletPoint(precaution))
                   .toList(),
 
@@ -1027,7 +1092,7 @@ class RtpResultsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              ...plan.followUpRecommendations
+              ..._plan.followUpRecommendations
                   .map((recommendation) => _buildBulletPoint(recommendation))
                   .toList(),
 
@@ -1066,16 +1131,9 @@ class RtpResultsScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CustomButton(
-                      text: 'Save Plan',
-                      icon: Icons.save,
-                      onPressed: () {
-                        // Save plan functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Plan saved successfully'),
-                          ),
-                        );
-                      },
+                      text: _isSaving ? 'Saving...' : 'Save Plan',
+                      icon: _isSaving ? Icons.hourglass_empty : Icons.save,
+                      onPressed: _isSaving ? () {} : _savePlan,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -1096,6 +1154,41 @@ class RtpResultsScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
+              // Success or error message
+              if (_saveSuccess || _errorMessage != null)
+                Container(
+                  margin: const EdgeInsets.only(top: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _saveSuccess ? Colors.green[50] : Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _saveSuccess ? Colors.green : Colors.red,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _saveSuccess ? Icons.check_circle : Icons.error,
+                        color: _saveSuccess ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _saveSuccess
+                              ? 'Plan saved successfully to your profile'
+                              : _errorMessage ?? 'Failed to save plan',
+                          style: TextStyle(
+                            color: _saveSuccess
+                                ? Colors.green[800]
+                                : Colors.red[800],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
@@ -1257,17 +1350,17 @@ class RtpResultsScreen extends StatelessWidget {
     // Calculate estimated days based on injury severity and type
     if (assessment.injuryType == 'Sprain') {
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 35; // ~5 weeks
+        estimatedDays = 70; // ~10 weeks
         title = 'Mild Ankle Sprain Recovery Plan';
         description =
             'A comprehensive rehabilitation program for a mild ankle sprain, following a 4-phase approach to ensure safe return to activity.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 49; // ~7 weeks
+        estimatedDays = 84; // ~12 weeks
         title = 'Moderate Ankle Sprain Recovery Plan';
         description =
             'A structured rehabilitation program for a moderate ankle sprain, with progressive phases to ensure safe return to activity.';
       } else {
-        estimatedDays = 70; // ~10 weeks
+        estimatedDays = 112; // ~16 weeks
         title = 'Severe Ankle Sprain Recovery Plan';
         description =
             'An intensive rehabilitation program for a severe ankle sprain, requiring careful progression through healing phases.';
@@ -1282,42 +1375,11 @@ class RtpResultsScreen extends StatelessWidget {
       ];
 
       // Create phases based on the protocol
-      // Phase 1: Protection and Optimal Loading
-      int phase1Duration = (estimatedDays * 0.2).round(); // 20% for Phase 1
-      int phase2Duration = (estimatedDays * 0.3).round(); // 30% for Phase 2
-      int phase3Duration = (estimatedDays * 0.3).round(); // 30% for Phase 3
-      int phase4Duration = estimatedDays -
-          (phase1Duration +
-              phase2Duration +
-              phase3Duration); // Remaining days for Phase 4
-
-      // Calculate end dates for each phase
-      DateTime startDate =
-          DateTime.now(); // Assuming the rehabilitation starts today
-      DateTime phase1EndDate = startDate
-          .add(Duration(days: phase1Duration)); // Convert weeks to days
-      DateTime phase2EndDate =
-          phase1EndDate.add(Duration(days: phase2Duration));
-      DateTime phase3EndDate =
-          phase2EndDate.add(Duration(days: phase3Duration));
-      DateTime phase4EndDate =
-          phase3EndDate.add(Duration(days: phase4Duration));
-
-      String startDateString =
-          startDate.toLocal().toIso8601String().split('T')[0];
-      String phase1EndDateString =
-          phase1EndDate.toLocal().toIso8601String().split('T')[0];
-      String phase2EndDateString =
-          phase2EndDate.toLocal().toIso8601String().split('T')[0];
-      String phase3EndDateString =
-          phase3EndDate.toLocal().toIso8601String().split('T')[0];
-      String phase4EndDateString =
-          phase4EndDate.toLocal().toIso8601String().split('T')[0];
-
+      // Phase 1: Protection and Optimal Loading (1-2 weeks)
       phases.add(
         RehabPhase(
           name: 'Phase I: Protection and Optimal Loading',
-          duration: '$startDateString- $phase1EndDateString',
+          duration: '1-2 weeks',
           goal:
               'Decrease pain, decrease swelling, improve weight bearing, and protect healing structures',
           bracingGuidance:
@@ -1368,11 +1430,11 @@ class RtpResultsScreen extends StatelessWidget {
         ),
       );
 
-      // Phase 2: Intermediate/Sub-acute
+      // Phase 2: Intermediate/Sub-acute (3-6 weeks)
       phases.add(
         RehabPhase(
           name: 'Phase II: Intermediate/Sub-acute',
-          duration: '$phase1EndDateString- $phase2EndDateString',
+          duration: '3-6 weeks',
           goal:
               'Decrease pain, normalize gait pattern, improve ankle ROM, improve single leg stance stability, and maintain or improve proximal muscle strength',
           bracingGuidance:
@@ -1430,11 +1492,11 @@ class RtpResultsScreen extends StatelessWidget {
         ),
       );
 
-      // Phase 3: Late/Chronic
+      // Phase 3: Late/Chronic (7-10 weeks)
       phases.add(
         RehabPhase(
           name: 'Phase III: Late/Chronic',
-          duration: '$phase2EndDateString- $phase3EndDateString',
+          duration: '7-10 weeks',
           goal:
               'Optimize strength, optimize balance, initiate plyometric activities, and initiate return to running',
           bracingGuidance:
@@ -1480,17 +1542,17 @@ class RtpResultsScreen extends StatelessWidget {
           ],
           criteria: [
             'Able to perform 25 single leg heel raises or equal number compared to uninvolved side',
-            '80% or better performance on involved lower extremitya compared to contralateral side with Star balance / Y-balance excursion test',
+            '80% or better performance on involved lower extremity compared to contralateral side with Star balance / Y-balance excursion test',
             'Appropriate scores on patient reported outcome measure (e.g. Cumberland Ankle Instability Tool or FAAM)',
           ],
         ),
       );
 
-      // Phase 4: Return to Sport
+      // Phase 4: Return to Sport (11-16 weeks)
       phases.add(
         RehabPhase(
           name: 'Phase IV: Return to Sport',
-          duration: '$phase3EndDateString- $phase4EndDateString',
+          duration: '11-16 weeks',
           goal:
               'Full strength of foot and ankle, improve motor control with higher level activities, and return to normal activities',
           bracingGuidance:
@@ -1541,17 +1603,17 @@ class RtpResultsScreen extends StatelessWidget {
       // Similar structure for strain but with appropriate modifications
       // ...existing strain rehabilitation plan...
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 35; // ~10 weeks
+        estimatedDays = 70; // ~10 weeks
         title = 'Mild Ankle Strain Recovery Plan';
         description =
             'A targeted rehabilitation program for a mild ankle muscle strain, focusing on muscle healing and strengthening.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 49; // ~12 weeks
+        estimatedDays = 84; // ~12 weeks
         title = 'Moderate Ankle Strain Recovery Plan';
         description =
             'A comprehensive rehabilitation program for a moderate ankle muscle strain, with gradual return to full function.';
       } else {
-        estimatedDays = 70; // ~16 weeks
+        estimatedDays = 112; // ~16 weeks
         title = 'Severe Ankle Strain Recovery Plan';
         description =
             'An extensive rehabilitation program for a severe ankle muscle strain, requiring careful progression and monitoring.';
