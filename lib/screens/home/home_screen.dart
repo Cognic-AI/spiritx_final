@@ -89,15 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                               onChatPageChanged("Chat");
                             },
                           ))
-<<<<<<< HEAD
                     : (_currentIndex == 2
                         ? const RtpReportScreen() // Navigate to the new RTP Report Screen
                         : ProfileScreen()))),
-=======
-                    : _currentIndex == 2
-                        ? const RtpReportScreen() // Navigate to the new RTP Report Screen
-                        : ProfileScreen())),
->>>>>>> 629c2dfbd89e79c52698e3d337fd048693180c9e
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,

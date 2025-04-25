@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickProfileImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
+      imageQuality: 50,
     );
 
     if (image != null) {
@@ -169,33 +169,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        // CircleAvatar(
-                        //   radius: 60,
-                        //   backgroundColor: Colors.grey[300],
-                        //   backgroundImage: userModel.profileImageUrl != null
-                        //       ? NetworkImage(userModel.profileImageUrl!)
-                        //       : null,
-                        //   child: userModel.profileImageUrl == null
-                        //       ? const Icon(
-                        //           Icons.person,
-                        //           size: 60,
-                        //           color: Colors.grey,
-                        //         )
-                        //       : null,
-                        // ),
-                        if (_profileImage != null) ...[
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundImage: FileImage(_profileImage!),
-                          ),
-                        ],
-                        if (_profileImage == null) ...[
-                          CircleAvatar(
-                            radius: 60,
-                            backgroundImage:
-                                NetworkImage(userModel.profileImageUrl!),
-                          ),
-                        ],
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.grey[300],
+                          backgroundImage: userModel.profileImageUrl != null
+                              ? NetworkImage(userModel.profileImageUrl!)
+                              : null,
+                          child: userModel.profileImageUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: Colors.grey,
+                                )
+                              : null,
+                        ),
                         CircleAvatar(
                           radius: 18,
                           backgroundColor: AppTheme.primaryColor,
