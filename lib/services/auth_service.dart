@@ -220,13 +220,15 @@ class AuthService extends ChangeNotifier {
       String? profileImageUrl = _userModel!.profileImageUrl;
 
       if (profileImage != null) {
-        Reference ref = _storage
-            .ref()
-            .child('profile_images')
-            .child('${_userModel!.uid}.jpg');
-        UploadTask uploadTask = ref.putFile(profileImage);
-        TaskSnapshot snapshot = await uploadTask;
-        profileImageUrl = await snapshot.ref.getDownloadURL();
+        profileImageUrl = await _uploadNicImage(_userModel!.uid, profileImage);
+
+        // Reference ref = _storage
+        //     .ref()
+        //     .child('profile_images')
+        //     .child('${_userModel!.uid}.jpg');
+        // UploadTask uploadTask = ref.putFile(profileImage);
+        // TaskSnapshot snapshot = await uploadTask;
+        // profileImageUrl = await snapshot.ref.getDownloadURL();
       }
 
       Map<String, dynamic> updateData = {};
