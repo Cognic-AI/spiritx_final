@@ -3,17 +3,17 @@ import 'package:sri_lanka_sports_app/services/sport_service.dart';
 
 class SportRepository {
   final SportService _sportService = SportService();
-  
+
   // Get all sports
   Future<List<SportModel>> getAllSports() async {
     return await _sportService.getAllSports();
   }
-  
+
   // Get sport by ID
-  Future<SportModel?> getSportById(String sportId) async {
-    return await _sportService.getSportById(sportId);
+  Future<SportModel?> getSportByName(String sportName) async {
+    return await _sportService.getSportByName(sportName);
   }
-  
+
   // Submit questionnaire and get recommendations
   Future<List<SportRecommendation>> getRecommendations({
     required double enduranceScore,
@@ -37,7 +37,7 @@ class SportRepository {
       durabilityScore: durabilityScore,
       handlingScore: handlingScore,
     );
-    
+
     return await _sportService.getRecommendations(questionnaire);
   }
 }

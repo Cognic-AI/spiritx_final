@@ -4,7 +4,8 @@ class SportModel {
   final String description;
   final List<String> skills;
   final String imageUrl;
-  final Map<String, dynamic>? attributes; // For additional attributes like physical requirements
+  final Map<String, dynamic>?
+      attributes; // For additional attributes like physical requirements
 
   SportModel({
     required this.id,
@@ -20,9 +21,7 @@ class SportModel {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      skills: json['skills'] != null 
-          ? List<String>.from(json['skills']) 
-          : [],
+      skills: json['skills'] != null ? List<String>.from(json['skills']) : [],
       imageUrl: json['imageUrl'] ?? '',
       attributes: json['attributes'],
     );
@@ -74,6 +73,9 @@ class SportQuestionnaireResponse {
   final double nervousSystemScore;
   final double durabilityScore;
   final double handlingScore;
+  final List<String> interests;
+  final int teamPreference;
+  final int competitiveness;
 
   SportQuestionnaireResponse({
     required this.enduranceScore,
@@ -85,6 +87,9 @@ class SportQuestionnaireResponse {
     required this.nervousSystemScore,
     required this.durabilityScore,
     required this.handlingScore,
+    this.interests = const [],
+    this.teamPreference = 3,
+    this.competitiveness = 3,
   });
 
   Map<String, dynamic> toJson() {
@@ -98,6 +103,9 @@ class SportQuestionnaireResponse {
       'nervousSystemScore': nervousSystemScore,
       'durabilityScore': durabilityScore,
       'handlingScore': handlingScore,
+      'interests': interests,
+      'teamPreference': teamPreference,
+      'competitiveness': competitiveness,
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
