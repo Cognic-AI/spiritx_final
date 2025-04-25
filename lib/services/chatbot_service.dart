@@ -42,6 +42,8 @@ class ChatbotService {
         final data = json.decode(response.body);
 
         if (data['response'] != null) {
+          print(
+              'Response from chatbot: ${data['response']}'); // Log the response
           // Create bot message
           ChatMessage botMessage = ChatMessage(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
