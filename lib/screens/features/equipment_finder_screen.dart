@@ -22,9 +22,9 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
 
   final List<String> _allPossibleSites = [
     'SportsSL.com',
-    'CricketGear.lk',
-    'SportsEquipment.lk',
-    'AthleticWorld.lk',
+    'mysports.lk',
+    'chancesports.lk',
+    'ikman.lk',
     'ProSports.lk',
   ];
 
@@ -69,19 +69,13 @@ class _EquipmentFinderScreenState extends State<EquipmentFinderScreen> {
       final sites = await _equipmentRepository.getFavoriteEquipmentSites();
 
       setState(() {
-        _favoriteSites = sites.isNotEmpty
-            ? sites
-            : ['SportsSL.com', 'CricketGear.lk', 'SportsEquipment.lk'];
+        _favoriteSites = sites.isNotEmpty ? sites : ['mysports.lk', 'ikman.lk'];
         _isLoading = false;
       });
     } catch (e) {
       print('Error loading favorite sites: $e');
       setState(() {
-        _favoriteSites = [
-          'SportsSL.com',
-          'CricketGear.lk',
-          'SportsEquipment.lk'
-        ];
+        _favoriteSites = ['ikman.lk', 'ikman.lk'];
         _isLoading = false;
       });
     }

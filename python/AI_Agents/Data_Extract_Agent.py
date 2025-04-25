@@ -109,9 +109,10 @@ def find_relevant_sections(soup: BeautifulSoup, request_id: str) -> Dict[str, st
                     end_idx = min(len(sections), idx + 2) 
                     context = sections[start_idx:end_idx]
                     best_text.extend([s.strip() for s in context])
-        if max_similarity > 0.01 and best_text:
+        if best_text:
             # For price, validate it contains actual price information
             if group_key == 'price':
+                print(best_text)
                 # Check if text contains numeric values and currency symbols
                 api_key: str = key_manager.get_next_key()
                 gemini_model: genai.GenerativeModel = initialize_gemini(api_key)
@@ -395,6 +396,6 @@ def sanitize_filename(url: str) -> str:
 # start_time = time.time()
 # process_links("CA",None,[56.4383657,-114.8492314],"1234567898")
 # process_links("CA",["https://www.amazon.com"],[56.4383657,-114.8492314],"1234567899")
-# process_links(None, [6.943749,79.982535], "1234567898")
+# process_links(['Badminton'], [6.943749,79.982535], "6ae510e6-5bdb-431b-aae3-20c52b48fe0e")
 # end_time = time.time()
 # print(f"Time taken: {end_time - start_time:.2f} seconds")
