@@ -186,6 +186,7 @@ class _RtpReportScreenState extends State<RtpReportScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildPhaseCard(BuildContext context, RehabPhase phase) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
