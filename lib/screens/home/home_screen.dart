@@ -87,16 +87,24 @@ class _HomeScreenState extends State<HomeScreen> {
                               onChatPageChanged("Chat");
                             },
                           ))
-                    : ProfileScreen())),
+                    : _currentIndex == 2
+                        ? const RtpCalculatorScreen()
+                        : ProfileScreen())),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
+            if (_currentIndex == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RtpCalculatorScreen()),
+              );
+            }
           });
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -104,6 +112,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calculate),
+            label: 'RTP',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -272,26 +284,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const EducationScreen()),
-                );
-              },
-            ),
-
-            // RTP Calculator
-            _buildFeatureCard(
-              context,
-              title: 'RTP Calculator',
-              icon: Icons.calculate,
-              color: Colors.purple.shade400,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.purple.shade400, Colors.purple.shade600],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const RtpCalculatorScreen()),
                 );
               },
             ),
@@ -528,53 +520,4 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.sports;
     }
   }
-
-//   Widget _buildFeatureCard(
-//     BuildContext context, {
-//     required String title,
-//     required IconData icon,
-//     required Color color,
-//     required VoidCallback onTap,
-//   }) {
-//     return Card(
-//       elevation: 2,
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(16),
-//       ),
-//       child: InkWell(
-//         onTap: onTap,
-//         borderRadius: BorderRadius.circular(16),
-//         child: Padding(
-//           padding: const EdgeInsets.all(16),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Container(
-//                 padding: const EdgeInsets.all(12),
-//                 decoration: BoxDecoration(
-//                   color: color.withOpacity(0.1),
-//                   shape: BoxShape.circle,
-//                 ),
-//                 child: Icon(
-//                   icon,
-//                   size: 32,
-//                   color: color,
-//                 ),
-//               ),
-//               const SizedBox(height: 12),
-//               Text(
-//                 title,
-//                 textAlign: TextAlign.center,
-//                 style: const TextStyle(
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 16,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 }
