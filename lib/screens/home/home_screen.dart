@@ -8,7 +8,7 @@ import 'package:sri_lanka_sports_app/screens/features/health_centers_screen.dart
 import 'package:sri_lanka_sports_app/screens/features/notifications_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
-import 'package:sri_lanka_sports_app/screens/progress_tracking_screen.dart';
+// import 'package:sri_lanka_sports_app/screens/progress_tracking_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/screens/features/rtp_report_screen.dart'; // Import the new screen
 
@@ -57,12 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           // IconButton(
-          //   icon: const Icon(Icons.person),
+          //   icon: const Icon(Icons.track_changes),
           //   onPressed: () {
           //     Navigator.push(
-          //       context,
-          //       MaterialPageRoute(builder: (_) => const ProfileScreen()),
-          //     );
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (_) => const ProgressTrackingScreen(),
+          //         ));
           //   },
           // ),
         ],
@@ -88,21 +89,21 @@ class _HomeScreenState extends State<HomeScreen> {
                               onChatPageChanged("Chat");
                             },
                           ))
+<<<<<<< HEAD
+                    : (_currentIndex == 2
+                        ? const RtpReportScreen() // Navigate to the new RTP Report Screen
+                        : ProfileScreen()))),
+=======
                     : _currentIndex == 2
                         ? const RtpReportScreen() // Navigate to the new RTP Report Screen
                         : ProfileScreen())),
+>>>>>>> 629c2dfbd89e79c52698e3d337fd048693180c9e
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
-            if (_currentIndex == 2) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RtpReportScreen()),
-              );
-            }
           });
         },
         items: const [
@@ -110,10 +111,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.home),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.track_changes),
-            label: 'Progress',
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.track_changes),
+          //   label: 'Progress',
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: 'Chat',
@@ -254,6 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
+            // if (isSportsperson) _buildProgressTrackingCard(context),
+
             // Equipment Finder
             _buildFeatureCard(
               context,
@@ -297,6 +300,26 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
+
+  // Widget _buildProgressTrackingCard(BuildContext context) {
+  //   return _buildFeatureCard(
+  //     context,
+  //     title: 'Progress Tracking',
+  //     icon: Icons.track_changes,
+  //     color: Colors.purple.shade400,
+  //     gradient: LinearGradient(
+  //       begin: Alignment.topLeft,
+  //       end: Alignment.bottomRight,
+  //       colors: [Colors.purple.shade400, Colors.purple.shade600],
+  //     ),
+  //     onTap: () {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(builder: (_) => const ProgressTrackingScreen()),
+  //       );
+  //     },
+  //   );
+  // }
 
   Widget _buildFeatureCard(
     BuildContext context, {
