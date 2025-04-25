@@ -50,89 +50,84 @@ class _RtpReportScreenState extends State<RtpReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Return to Play Report'),
-      ),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _errorMessage != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _loadLastReport,
-                          child: const Text('Try Again'),
-                        ),
-                      ],
+    return _isLoading
+        ? const Center(child: CircularProgressIndicator())
+        : _errorMessage != null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
                     ),
-                  )
-                : _report != null
-                    ? _buildReportView()
-                    : _buildNoReportView(),
-      ),
-    );
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadLastReport,
+                      child: const Text('Try Again'),
+                    ),
+                  ],
+                ),
+              )
+            : _report != null
+                ? _buildReportView()
+                : _buildNoReportView();
   }
 
   Widget _buildReportView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _report!['title'],
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    return
+        // SingleChildScrollView(
+        //   padding: const EdgeInsets.all(16),
+        //   child:
+        Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _report!['title'],
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 8),
-          Text(
-            _report!['description'],
-            style: const TextStyle(
-              color: Colors.grey,
-            ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          _report!['description'],
+          style: const TextStyle(
+            color: Colors.grey,
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Estimated Days to Return: ${_report!['estimatedDaysToReturn']}',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Precautions: ${_report!['precautions'] ?? 'None'}',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Follow-Up Recommendations: ${_report!['followUpRecommendations'] ?? 'None'}',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Bracing Recommendations: ${_report!['bracingRecommendations'] ?? 'None'}',
-            style: const TextStyle(color: Colors.black54),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RtpCalculatorScreen()),
-              );
-            },
-            child: const Text('Create New Report'),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Estimated Days to Return: ${_report!['estimatedDaysToReturn']}',
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Precautions: ${_report!['precautions'] ?? 'None'}',
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Follow-Up Recommendations: ${_report!['followUpRecommendations'] ?? 'None'}',
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Bracing Recommendations: ${_report!['bracingRecommendations'] ?? 'None'}',
+          style: const TextStyle(color: Colors.black54),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RtpCalculatorScreen()),
+            );
+          },
+          child: const Text('Create New Report'),
+        ),
+      ],
+      // ),
     );
   }
 

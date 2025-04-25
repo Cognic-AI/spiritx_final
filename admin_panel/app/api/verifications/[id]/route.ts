@@ -45,6 +45,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       notes,
       updatedAt: new Date(),
     })
+    await updateDoc(doc(db, "users", params.id), {
+      isVerified: status === "approved" ? true : false,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
