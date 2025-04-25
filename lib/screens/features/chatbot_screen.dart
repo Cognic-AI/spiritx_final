@@ -220,7 +220,7 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           // Language Selector Dropdown
           DropdownButton<String>(
             value: _selectedLanguage,
-            items: <String>['english', 'sinhala', 'tamil']
+            items: <String>['English', 'Sinhala', 'Tamil']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
