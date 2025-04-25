@@ -10,6 +10,7 @@ import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
 import 'package:sri_lanka_sports_app/screens/progress_tracking_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
+import 'package:sri_lanka_sports_app/screens/features/rtp_report_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -73,32 +74,38 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? _buildHome(
                     userModel: userModel, isSportsperson: isSportsperson)
                 : (_currentIndex == 1
-                    ? (ProgressTrackingScreen())
-                    : (_currentIndex == 2
-                        ? (_chatPage == "Chat"
-                            ? ChatbotScreen(
-                                sessionId: sessionId,
-                                onChatPageChanged: () =>
-                                    onChatPageChanged("History"),
-                                onSessionSelected: (selectedSessionId) =>
-                                    onChatSessionChanged(selectedSessionId),
-                              )
-                            : ChatSessionsScreen(
-                                onSessionSelected: (selectedSessionId) {
-                                  onChatSessionChanged(selectedSessionId);
-                                  onChatPageChanged("Chat");
-                                },
-                              ))
-                        : ProfileScreen()))),
+                    ? (_chatPage == "Chat"
+                        ? ChatbotScreen(
+                            sessionId: sessionId,
+                            onChatPageChanged: () =>
+                                onChatPageChanged("History"),
+                            onSessionSelected: (selectedSessionId) =>
+                                onChatSessionChanged(selectedSessionId),
+                          )
+                        : ChatSessionsScreen(
+                            onSessionSelected: (selectedSessionId) {
+                              onChatSessionChanged(selectedSessionId);
+                              onChatPageChanged("Chat");
+                            },
+                          ))
+                    : _currentIndex == 2
+                        ? const RtpReportScreen() // Navigate to the new RTP Report Screen
+                        : ProfileScreen())),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
+            if (_currentIndex == 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RtpReportScreen()),
+              );
+            }
           });
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -110,6 +117,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
             label: 'Chat',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calculate),
+            label: 'RTP',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -243,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-// Equipment Finder
+            // Equipment Finder
             _buildFeatureCard(
               context,
               title: 'Equipment Finder',
@@ -263,7 +274,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
 
-// Education
+            // Education
             _buildFeatureCard(
               context,
               title: 'Sports Education',
@@ -514,53 +525,4 @@ class _HomeScreenState extends State<HomeScreen> {
         return Icons.sports;
     }
   }
-
-//   Widget _buildFeatureCard(
-//     BuildContext context, {
-//     required String title,
-//     required IconData icon,
-//     required Color color,
-//     required VoidCallback onTap,
-//   }) {
-//     return Card(
-//       elevation: 2,
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(16),
-//       ),
-//       child: InkWell(
-//         onTap: onTap,
-//         borderRadius: BorderRadius.circular(16),
-//         child: Padding(
-//           padding: const EdgeInsets.all(16),
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               Container(
-//                 padding: const EdgeInsets.all(12),
-//                 decoration: BoxDecoration(
-//                   color: color.withOpacity(0.1),
-//                   shape: BoxShape.circle,
-//                 ),
-//                 child: Icon(
-//                   icon,
-//                   size: 32,
-//                   color: color,
-//                 ),
-//               ),
-//               const SizedBox(height: 12),
-//               Text(
-//                 title,
-//                 textAlign: TextAlign.center,
-//                 style: const TextStyle(
-//                   fontWeight: FontWeight.bold,
-//                   fontSize: 16,
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
 }

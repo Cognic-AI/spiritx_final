@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 borderRadius: BorderRadius.circular(60),
               ),
               child: Icon(
-                Icons.sports,
+                Icons.sports_volleyball,
                 size: 80,
                 color: AppTheme.primaryColor,
               ),
@@ -72,7 +72,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // App name
             const Text(
-              'Sri Lanka Sports',
+              'SportSpark ',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
