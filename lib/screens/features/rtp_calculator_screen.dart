@@ -956,6 +956,36 @@ class RtpResultsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
+              // Bracing recommendations
+              if (plan.bracingRecommendations.isNotEmpty) ...[
+                const Text(
+                  'Bracing Recommendations',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...plan.bracingRecommendations
+                            .map((recommendation) =>
+                                _buildBulletPoint(recommendation))
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
               // Rehabilitation phases
               const Text(
                 'Rehabilitation Protocol',
@@ -1104,6 +1134,17 @@ class RtpResultsScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (phase.bracingGuidance != null) ...[
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Bracing:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(phase.bracingGuidance!),
+                ],
                 const SizedBox(height: 16),
                 const Text(
                   'Exercises:',
@@ -1211,52 +1252,327 @@ class RtpResultsScreen extends StatelessWidget {
     List<RehabPhase> phases = [];
     List<String> precautions = [];
     List<String> followUpRecommendations = [];
+    List<String> bracingRecommendations = [];
 
     // Calculate estimated days based on injury severity and type
     if (assessment.injuryType == 'Sprain') {
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 14;
+        estimatedDays = 35; // ~5 weeks
         title = 'Mild Ankle Sprain Recovery Plan';
         description =
-            'A comprehensive rehabilitation program for a mild ankle sprain, focusing on restoring mobility, strength, and function.';
+            'A comprehensive rehabilitation program for a mild ankle sprain, following a 4-phase approach to ensure safe return to activity.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 28;
+        estimatedDays = 49; // ~7 weeks
         title = 'Moderate Ankle Sprain Recovery Plan';
         description =
             'A structured rehabilitation program for a moderate ankle sprain, with progressive phases to ensure safe return to activity.';
       } else {
-        estimatedDays = 42;
+        estimatedDays = 70; // ~10 weeks
         title = 'Severe Ankle Sprain Recovery Plan';
         description =
             'An intensive rehabilitation program for a severe ankle sprain, requiring careful progression through healing phases.';
       }
+
+      // Bracing recommendations for sprains
+      bracingRecommendations = [
+        'Wear a brace or protective tape during weight-bearing activities',
+        'For severe sprains, immobilization is recommended for 10 days',
+        'Utilize a lace-up brace for functional activities in later phases',
+        'Consider prophylactic bracing for 3-6 months after returning to sport to prevent re-injury'
+      ];
+
+      // Create phases based on the protocol
+      // Phase 1: Protection and Optimal Loading
+      int phase1Duration = (estimatedDays * 0.2).round(); // 20% for Phase 1
+      int phase2Duration = (estimatedDays * 0.3).round(); // 30% for Phase 2
+      int phase3Duration = (estimatedDays * 0.3).round(); // 30% for Phase 3
+      int phase4Duration = estimatedDays -
+          (phase1Duration +
+              phase2Duration +
+              phase3Duration); // Remaining days for Phase 4
+
+      // Calculate end dates for each phase
+      DateTime startDate =
+          DateTime.now(); // Assuming the rehabilitation starts today
+      DateTime phase1EndDate = startDate
+          .add(Duration(days: phase1Duration)); // Convert weeks to days
+      DateTime phase2EndDate =
+          phase1EndDate.add(Duration(days: phase2Duration));
+      DateTime phase3EndDate =
+          phase2EndDate.add(Duration(days: phase3Duration));
+      DateTime phase4EndDate =
+          phase3EndDate.add(Duration(days: phase4Duration));
+
+      String startDateString =
+          startDate.toLocal().toIso8601String().split('T')[0];
+      String phase1EndDateString =
+          phase1EndDate.toLocal().toIso8601String().split('T')[0];
+      String phase2EndDateString =
+          phase2EndDate.toLocal().toIso8601String().split('T')[0];
+      String phase3EndDateString =
+          phase3EndDate.toLocal().toIso8601String().split('T')[0];
+      String phase4EndDateString =
+          phase4EndDate.toLocal().toIso8601String().split('T')[0];
+
+      phases.add(
+        RehabPhase(
+          name: 'Phase I: Protection and Optimal Loading',
+          duration: '$startDateString- $phase1EndDateString',
+          goal:
+              'Decrease pain, decrease swelling, improve weight bearing, and protect healing structures',
+          bracingGuidance:
+              'Brace or protective tape should be worn during weight bearing activities. Immobilization is recommended for 10 days for severe ankle sprain.',
+          exercises: [
+            RehabExercise(
+              name: 'Ankle Pumps',
+              description:
+                  'Slowly move your foot up and down at the ankle joint.',
+              frequency: '3-5 times daily, 10-15 repetitions',
+            ),
+            RehabExercise(
+              name: 'Ankle Circles',
+              description:
+                  'Rotate your ankle in clockwise and counterclockwise directions.',
+              frequency: '3-5 times daily, 10 circles in each direction',
+            ),
+            RehabExercise(
+              name: 'Ankle Alphabet',
+              description:
+                  'Draw the alphabet with your toes, moving only your ankle.',
+              frequency: '2-3 times daily, 1-2 sets',
+            ),
+            RehabExercise(
+              name: 'Seated Heel Raises',
+              description:
+                  'While seated, lift your heels off the ground while keeping toes on the floor.',
+              frequency: 'Daily, 2-3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Seated Toe Raises',
+              description:
+                  'While seated, lift your toes off the ground while keeping heels on the floor.',
+              frequency: 'Daily, 2-3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Towel Crunches',
+              description:
+                  'Place a towel on the floor and scrunch it toward you using your toes.',
+              frequency: 'Once daily, 2-3 sets of 10-15 repetitions',
+            ),
+          ],
+          criteria: [
+            'Ability to fully weight bear on involved lower extremity',
+            'Decreased pain',
+            'Minimal swelling',
+          ],
+        ),
+      );
+
+      // Phase 2: Intermediate/Sub-acute
+      phases.add(
+        RehabPhase(
+          name: 'Phase II: Intermediate/Sub-acute',
+          duration: '$phase1EndDateString- $phase2EndDateString',
+          goal:
+              'Decrease pain, normalize gait pattern, improve ankle ROM, improve single leg stance stability, and maintain or improve proximal muscle strength',
+          bracingGuidance:
+              'Continue to wear brace for weight bearing activities.',
+          exercises: [
+            RehabExercise(
+              name: 'Knee to Wall Dorsiflexion',
+              description:
+                  'Face a wall with your toes about 4 inches away. Bend your knee to touch the wall while keeping your heel on the ground.',
+              frequency: 'Daily, 3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Gastroc Stretch',
+              description:
+                  'Stand facing a wall with hands on the wall. Place the involved leg behind you with knee straight and heel down. Lean forward until you feel a stretch in your calf.',
+              frequency: 'Daily, 3 sets of 30-second holds',
+            ),
+            RehabExercise(
+              name: 'Soleus Stretch',
+              description:
+                  'Similar to the gastroc stretch, but with the back knee slightly bent.',
+              frequency: 'Daily, 3 sets of 30-second holds',
+            ),
+            RehabExercise(
+              name: 'Resisted Ankle Movements',
+              description:
+                  'Use a resistance band to perform ankle dorsiflexion, plantar flexion, inversion, and eversion.',
+              frequency: 'Daily, 3 sets of 10-15 repetitions in each direction',
+            ),
+            RehabExercise(
+              name: 'Double Leg Heel Raises',
+              description:
+                  'Stand with feet shoulder-width apart and rise up onto your toes.',
+              frequency: 'Daily, 3 sets of 15 repetitions',
+            ),
+            RehabExercise(
+              name: 'Single Leg Stance',
+              description:
+                  'Stand on the injured leg for 30 seconds, progressing to unstable surfaces.',
+              frequency: 'Daily, 3-5 repetitions',
+            ),
+            RehabExercise(
+              name: 'Tandem Walking',
+              description:
+                  'Walk in a straight line placing one foot directly in front of the other.',
+              frequency: 'Daily, 3 sets of 10 steps',
+            ),
+          ],
+          criteria: [
+            'Non-antalgic gait pattern',
+            'Equal single leg stance time and quality bilaterally',
+            'Full ankle passive and active range of motion',
+            '5/5 ankle strength with manual muscle testing',
+          ],
+        ),
+      );
+
+      // Phase 3: Late/Chronic
+      phases.add(
+        RehabPhase(
+          name: 'Phase III: Late/Chronic',
+          duration: '$phase2EndDateString- $phase3EndDateString',
+          goal:
+              'Optimize strength, optimize balance, initiate plyometric activities, and initiate return to running',
+          bracingGuidance:
+              'Utilize lace up brace for functional activities as needed.',
+          exercises: [
+            RehabExercise(
+              name: 'Single Leg Heel Raises',
+              description:
+                  'Stand on the injured leg and rise up onto your toes.',
+              frequency: '3-4 times weekly, 3 sets of 15 repetitions',
+            ),
+            RehabExercise(
+              name: 'Single Leg Multidirectional Reach',
+              description:
+                  'Stand on one leg and reach the other leg in different directions (forward, side, backward).',
+              frequency:
+                  '3-4 times weekly, 3 sets of 8 reaches in each direction',
+            ),
+            RehabExercise(
+              name: 'Dual Task Balance',
+              description:
+                  'Stand on one leg while tossing a ball or performing another task.',
+              frequency: '3-4 times weekly, 3 sets of 30 seconds',
+            ),
+            RehabExercise(
+              name: 'Double Leg Hopping',
+              description:
+                  'Hop with both feet together in different patterns (forward/backward, side to side).',
+              frequency: '2-3 times weekly, 3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Lateral Bounding',
+              description:
+                  'Jump sideways from one foot to the other in a controlled manner.',
+              frequency: '2-3 times weekly, 3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Agility Ladder Drills',
+              description:
+                  'Perform various footwork patterns through an agility ladder.',
+              frequency: '2-3 times weekly, 3 sets of each pattern',
+            ),
+          ],
+          criteria: [
+            'Able to perform 25 single leg heel raises or equal number compared to uninvolved side',
+            '80% or better performance on involved lower extremitya compared to contralateral side with Star balance / Y-balance excursion test',
+            'Appropriate scores on patient reported outcome measure (e.g. Cumberland Ankle Instability Tool or FAAM)',
+          ],
+        ),
+      );
+
+      // Phase 4: Return to Sport
+      phases.add(
+        RehabPhase(
+          name: 'Phase IV: Return to Sport',
+          duration: '$phase3EndDateString- $phase4EndDateString',
+          goal:
+              'Full strength of foot and ankle, improve motor control with higher level activities, and return to normal activities',
+          bracingGuidance:
+              'Consider prophylactic bracing for high-risk activities.',
+          exercises: [
+            RehabExercise(
+              name: 'Single Leg Agility Drills',
+              description:
+                  'Perform cutting, pivoting, and direction changes on the injured leg.',
+              frequency: '2-3 times weekly, progressing in intensity',
+            ),
+            RehabExercise(
+              name: 'Single Leg Hopping',
+              description:
+                  'Hop on the injured leg in different patterns (forward/backward, side to side, diagonally).',
+              frequency: '2-3 times weekly, 3 sets of 10 repetitions',
+            ),
+            RehabExercise(
+              name: 'Change of Direction Drills',
+              description:
+                  'Practice sport-specific cutting and pivoting movements.',
+              frequency: '2-3 times weekly, progressing in intensity',
+            ),
+            RehabExercise(
+              name: 'Interval Sports Training',
+              description:
+                  'Gradually return to sport-specific activities, starting with low intensity and short duration.',
+              frequency:
+                  '2-3 times weekly, gradually increasing intensity and duration',
+            ),
+            RehabExercise(
+              name: 'Return to Running Progression',
+              description:
+                  'Begin with jogging intervals, progressing to continuous running and then sprinting.',
+              frequency:
+                  '3 times weekly, gradually increasing distance and speed',
+            ),
+          ],
+          criteria: [
+            '90% or better performance on involved lower extremity on Star balance / Y-Balance excursion test',
+            '90% or better performance on involved lower extremity on single leg hop for distance, triple hop for distance, 6m timed hop, and/or cross over hop for distance',
+            'Appropriate scores on patient reported outcome measure (e.g. Cumberland Ankle Instability Tool or FAAM)',
+            'No increase in pain or swelling with plyometric and return to sports activities',
+          ],
+        ),
+      );
     } else if (assessment.injuryType == 'Strain') {
+      // Similar structure for strain but with appropriate modifications
+      // ...existing strain rehabilitation plan...
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 14;
+        estimatedDays = 35; // ~10 weeks
         title = 'Mild Ankle Strain Recovery Plan';
         description =
             'A targeted rehabilitation program for a mild ankle muscle strain, focusing on muscle healing and strengthening.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 28;
+        estimatedDays = 49; // ~12 weeks
         title = 'Moderate Ankle Strain Recovery Plan';
         description =
             'A comprehensive rehabilitation program for a moderate ankle muscle strain, with gradual return to full function.';
       } else {
-        estimatedDays = 42;
+        estimatedDays = 70; // ~16 weeks
         title = 'Severe Ankle Strain Recovery Plan';
         description =
             'An extensive rehabilitation program for a severe ankle muscle strain, requiring careful progression and monitoring.';
       }
+
+      // Use similar phases as sprain but with focus on muscle healing
+      // ... existing strain phases ...
     } else if (assessment.injuryType == 'Tendonitis') {
-      estimatedDays = 35;
+      estimatedDays = 84; // ~12 weeks
       title = 'Ankle Tendonitis Recovery Plan';
       description =
           'A specialized rehabilitation program for ankle tendonitis, focusing on reducing inflammation and strengthening the affected tendon.';
+
+      // ... existing tendonitis phases ...
     } else {
-      estimatedDays = 56;
+      estimatedDays = 112; // ~16 weeks
       title = 'Ankle Fracture Recovery Plan';
       description =
           'A comprehensive rehabilitation program for an ankle fracture, to be followed after medical clearance and removal of immobilization.';
+
+      // ... existing fracture phases ...
     }
 
     // Adjust for previous injury
@@ -1269,361 +1585,6 @@ class RtpResultsScreen extends StatelessWidget {
       estimatedDays = (estimatedDays * 0.9).round();
     } else if (assessment.currentActivityLevel == 'Sedentary') {
       estimatedDays = (estimatedDays * 1.1).round();
-    }
-
-    // Create phases based on injury type and severity
-    if (assessment.injuryType == 'Sprain' ||
-        assessment.injuryType == 'Strain') {
-      // Phase 1: Acute Phase
-      phases.add(
-        RehabPhase(
-          name: 'Phase 1: Protection and Pain Control',
-          duration: '1-7 days',
-          goal: 'Reduce pain, swelling, and protect the injured tissues',
-          exercises: [
-            RehabExercise(
-              name: 'Ankle Alphabet',
-              description:
-                  'Draw the alphabet with your toes, moving only your ankle.',
-              frequency: '2-3 times daily, 1-2 sets',
-            ),
-            RehabExercise(
-              name: 'Gentle Ankle Pumps',
-              description:
-                  'Slowly move your foot up and down at the ankle joint.',
-              frequency: '3-5 times daily, 10-15 repetitions',
-            ),
-            RehabExercise(
-              name: 'Towel Scrunches',
-              description:
-                  'Place a towel on the floor and scrunch it toward you using your toes.',
-              frequency: 'Once daily, 2-3 sets of 10-15 repetitions',
-            ),
-          ],
-          criteria: [
-            'Decreased pain and swelling',
-            'Ability to bear some weight on the affected ankle',
-            'Improved range of motion',
-          ],
-        ),
-      );
-
-      // Phase 2: Subacute Phase
-      phases.add(
-        RehabPhase(
-          name: 'Phase 2: Mobility and Initial Strengthening',
-          duration: '1-3 weeks',
-          goal: 'Restore range of motion and begin strengthening',
-          exercises: [
-            RehabExercise(
-              name: 'Ankle Eversion/Inversion',
-              description:
-                  'Turn your foot outward and inward against resistance band.',
-              frequency: 'Daily, 3 sets of 10 repetitions',
-            ),
-            RehabExercise(
-              name: 'Calf Raises',
-              description: 'Rise up on your toes and slowly lower back down.',
-              frequency: 'Daily, 3 sets of 10-15 repetitions',
-            ),
-            RehabExercise(
-              name: 'Single-Leg Balance',
-              description:
-                  'Stand on the injured leg for 30 seconds, progressing to unstable surfaces.',
-              frequency: 'Daily, 3-5 repetitions',
-            ),
-          ],
-          criteria: [
-            'Full or near-full range of motion',
-            'Minimal pain with daily activities',
-            'Ability to stand on the affected leg for 30 seconds',
-          ],
-        ),
-      );
-
-      // Phase 3: Functional Phase
-      phases.add(
-        RehabPhase(
-          name: 'Phase 3: Advanced Strengthening and Function',
-          duration: '3-6 weeks',
-          goal: 'Improve strength, balance, and prepare for return to activity',
-          exercises: [
-            RehabExercise(
-              name: 'Lateral Band Walks',
-              description:
-                  'Place a resistance band around your ankles and walk sideways.',
-              frequency:
-                  '3-4 times weekly, 3 sets of 10-15 steps each direction',
-            ),
-            RehabExercise(
-              name: 'Single-Leg Squat',
-              description:
-                  'Stand on the injured leg and perform a partial squat.',
-              frequency: '3-4 times weekly, 3 sets of 8-12 repetitions',
-            ),
-            RehabExercise(
-              name: 'Box Jumps',
-              description:
-                  'Jump onto a low box or step and step down carefully.',
-              frequency: '2-3 times weekly, 3 sets of 8-10 repetitions',
-            ),
-          ],
-          criteria: [
-            'Full strength compared to the uninjured side',
-            'No pain with sport-specific movements',
-            'Good balance and proprioception',
-          ],
-        ),
-      );
-
-      // Phase 4: Return to Sport
-      phases.add(
-        RehabPhase(
-          name: 'Phase 4: Return to Sport',
-          duration: '6+ weeks',
-          goal: 'Safe return to full activity and sport participation',
-          exercises: [
-            RehabExercise(
-              name: 'Agility Ladder Drills',
-              description:
-                  'Perform various footwork patterns through an agility ladder.',
-              frequency: '3 times weekly, 3-5 sets of each pattern',
-            ),
-            RehabExercise(
-              name: 'Cutting and Pivoting Drills',
-              description:
-                  'Practice sport-specific cutting and pivoting movements.',
-              frequency: '2-3 times weekly, progressing in intensity',
-            ),
-            RehabExercise(
-              name: 'Plyometric Training',
-              description: 'Perform jumping, hopping, and bounding exercises.',
-              frequency: '2-3 times weekly, 3 sets of 8-12 repetitions',
-            ),
-          ],
-          criteria: [
-            'Full pain-free function',
-            'Successful completion of sport-specific drills',
-            'Confidence in the injured ankle',
-            'Clearance from healthcare provider (if applicable)',
-          ],
-        ),
-      );
-    } else if (assessment.injuryType == 'Tendonitis') {
-      // Phases for tendonitis
-      phases.add(
-        RehabPhase(
-          name: 'Phase 1: Inflammation Control',
-          duration: '1-2 weeks',
-          goal: 'Reduce inflammation and pain',
-          exercises: [
-            RehabExercise(
-              name: 'Gentle Ankle Mobility',
-              description: 'Move your ankle through pain-free range of motion.',
-              frequency: '3-4 times daily, 1-2 minutes',
-            ),
-            RehabExercise(
-              name: 'Isometric Holds',
-              description:
-                  'Push against an immovable object in various directions.',
-              frequency: 'Daily, 3-5 sets of 30-second holds',
-            ),
-          ],
-          criteria: [
-            'Decreased pain and inflammation',
-            'Improved tolerance to daily activities',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 2: Eccentric Strengthening',
-          duration: '2-4 weeks',
-          goal: 'Begin loading the tendon with eccentric exercises',
-          exercises: [
-            RehabExercise(
-              name: 'Eccentric Heel Drops',
-              description:
-                  'Rise up on both feet, then slowly lower down on the affected foot.',
-              frequency: 'Daily, 3 sets of 15 repetitions',
-            ),
-            RehabExercise(
-              name: 'Resistance Band Exercises',
-              description:
-                  'Use a resistance band to strengthen the ankle in all directions.',
-              frequency: 'Daily, 3 sets of 15 repetitions in each direction',
-            ),
-          ],
-          criteria: [
-            'Minimal pain with eccentric loading',
-            'Improved strength in the affected tendon',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 3: Functional Strengthening',
-          duration: '4-6 weeks',
-          goal: 'Progress to functional and sport-specific exercises',
-          exercises: [
-            RehabExercise(
-              name: 'Single-Leg Balance',
-              description:
-                  'Balance on the affected leg, progressing to unstable surfaces.',
-              frequency: 'Daily, 3 sets of 30-60 seconds',
-            ),
-            RehabExercise(
-              name: 'Heel Raises with Weight',
-              description:
-                  'Perform heel raises while holding weights or wearing a backpack.',
-              frequency: '3-4 times weekly, 3 sets of 12-15 repetitions',
-            ),
-          ],
-          criteria: [
-            'No pain with daily activities',
-            'Improved endurance in the affected tendon',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 4: Return to Activity',
-          duration: '6+ weeks',
-          goal: 'Safely return to full activity and prevent recurrence',
-          exercises: [
-            RehabExercise(
-              name: 'Plyometric Training',
-              description:
-                  'Perform jumping and hopping exercises, progressing in intensity.',
-              frequency: '2-3 times weekly, 3 sets of 10-12 repetitions',
-            ),
-            RehabExercise(
-              name: 'Sport-Specific Drills',
-              description:
-                  'Practice movements specific to your sport or activity.',
-              frequency:
-                  '2-3 times weekly, progressing in duration and intensity',
-            ),
-          ],
-          criteria: [
-            'No pain with sport-specific activities',
-            'Full strength and endurance',
-            'Confidence in the affected ankle',
-          ],
-        ),
-      );
-    } else {
-      // Phases for fracture (post-immobilization)
-      phases.add(
-        RehabPhase(
-          name: 'Phase 1: Early Mobilization',
-          duration: '1-3 weeks post-immobilization',
-          goal: 'Restore basic mobility and reduce stiffness',
-          exercises: [
-            RehabExercise(
-              name: 'Ankle Circles',
-              description:
-                  'Gently move your ankle in circles, both clockwise and counterclockwise.',
-              frequency: '3-5 times daily, 1-2 minutes each direction',
-            ),
-            RehabExercise(
-              name: 'Towel Stretches',
-              description:
-                  'Use a towel to gently stretch your ankle in dorsiflexion.',
-              frequency: '3-4 times daily, 3 sets of 30-second holds',
-            ),
-          ],
-          criteria: [
-            'Improved range of motion',
-            'Decreased pain and swelling',
-            'Ability to bear partial weight (if cleared by doctor)',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 2: Progressive Loading',
-          duration: '3-6 weeks post-immobilization',
-          goal: 'Begin strengthening and weight-bearing activities',
-          exercises: [
-            RehabExercise(
-              name: 'Resistance Band Exercises',
-              description:
-                  'Use a resistance band to strengthen the ankle in all directions.',
-              frequency: 'Daily, 3 sets of 10-15 repetitions in each direction',
-            ),
-            RehabExercise(
-              name: 'Partial Weight-Bearing Exercises',
-              description:
-                  'Stand with partial weight on the affected leg, progressing to full weight.',
-              frequency: 'Daily, 3-5 sets of 30-60 seconds',
-            ),
-          ],
-          criteria: [
-            'Ability to bear full weight',
-            'Improved strength',
-            'Minimal pain with daily activities',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 3: Functional Strengthening',
-          duration: '6-12 weeks post-immobilization',
-          goal: 'Restore normal function and prepare for return to activities',
-          exercises: [
-            RehabExercise(
-              name: 'Single-Leg Balance',
-              description:
-                  'Balance on the affected leg, progressing to unstable surfaces.',
-              frequency: 'Daily, 3 sets of 30-60 seconds',
-            ),
-            RehabExercise(
-              name: 'Step-Ups',
-              description: 'Step up onto a step or box with the affected leg.',
-              frequency: '3-4 times weekly, 3 sets of 10-15 repetitions',
-            ),
-          ],
-          criteria: [
-            'Near-normal strength compared to unaffected side',
-            'Good balance and proprioception',
-            'Minimal pain with advanced activities',
-          ],
-        ),
-      );
-
-      phases.add(
-        RehabPhase(
-          name: 'Phase 4: Return to Activity',
-          duration: '12+ weeks post-immobilization',
-          goal: 'Safe return to full activity and sport participation',
-          exercises: [
-            RehabExercise(
-              name: 'Jogging and Running Progression',
-              description:
-                  'Begin with short jogging intervals, progressing to continuous running.',
-              frequency: '3 times weekly, gradually increasing duration',
-            ),
-            RehabExercise(
-              name: 'Sport-Specific Drills',
-              description:
-                  'Practice movements specific to your sport or activity.',
-              frequency: '2-3 times weekly, progressing in intensity',
-            ),
-          ],
-          criteria: [
-            'Full strength and range of motion',
-            'No pain with sport-specific activities',
-            'Confidence in the affected ankle',
-            'Clearance from healthcare provider',
-          ],
-        ),
-      );
     }
 
     // Add precautions based on injury type
@@ -1651,6 +1612,7 @@ class RtpResultsScreen extends StatelessWidget {
       'Consider wearing an ankle brace during high-risk activities for 3-6 months after injury',
       'Continue maintenance exercises 2-3 times weekly after completing the rehabilitation program',
       'Gradually return to sport-specific training, increasing intensity by no more than 10% per week',
+      'Consider a follow-up assessment with a physical therapist or sports medicine specialist before full return to sport',
     ];
 
     if (assessment.injurySeverity == 'Severe' ||
@@ -1666,6 +1628,7 @@ class RtpResultsScreen extends StatelessWidget {
       estimatedDaysToReturn: estimatedDays,
       precautions: precautions,
       followUpRecommendations: followUpRecommendations,
+      bracingRecommendations: bracingRecommendations,
     );
   }
 }

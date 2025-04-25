@@ -57,6 +57,7 @@ class RehabilitationPlan {
   final int estimatedDaysToReturn;
   final List<String> precautions;
   final List<String> followUpRecommendations;
+  final List<String> bracingRecommendations; // Add this new field
 
   RehabilitationPlan({
     required this.title,
@@ -65,6 +66,7 @@ class RehabilitationPlan {
     required this.estimatedDaysToReturn,
     required this.precautions,
     required this.followUpRecommendations,
+    required this.bracingRecommendations, // Add this to constructor
   });
 }
 
@@ -74,6 +76,7 @@ class RehabPhase {
   final String goal;
   final List<RehabExercise> exercises;
   final List<String> criteria;
+  final String? bracingGuidance; // Add this new field
 
   RehabPhase({
     required this.name,
@@ -81,6 +84,7 @@ class RehabPhase {
     required this.goal,
     required this.exercises,
     required this.criteria,
+    this.bracingGuidance, // Add this to constructor
   });
 }
 
