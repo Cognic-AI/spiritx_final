@@ -7,7 +7,7 @@ class SportService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // URL for the Python ML backend
-  final String _mlApiUrl = 'https://your-ml-api-endpoint.com/predict';
+  final String _mlApiUrl = 'http://localhost:9000/api/recommend';
 
   // Get all sports
   Future<List<SportModel>> getAllSports() async {
@@ -49,7 +49,7 @@ class SportService {
       SportQuestionnaireResponse questionnaire) async {
     try {
       // Save questionnaire response to Firestore
-      await _saveQuestionnaireResponse(questionnaire);
+      //await _saveQuestionnaireResponse(questionnaire);
 
       // Call ML API to get recommendations
       final response = await http.post(
@@ -61,31 +61,34 @@ class SportService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        if (data['recommendations'] != null) {
-          List<dynamic> recommendations = data['recommendations'];
+        if (data['recommended_sports'] != null) {
+          List<dynamic> recommendations = data['recommended_sports'];
 
-          // Fetch sport details from Firestore
-          List<SportRecommendation> sportRecommendations = [];
+          print('Recommendations from ML API: $recommendations');
+          // List<dynamic> recommendations = data['recommended_sports'];
 
-          for (var recommendation in recommendations) {
-            String sportId = recommendation['sportId'];
-            int matchPercentage = recommendation['matchPercentage'];
+          // // Fetch sport details from Firestore
+          // List<SportRecommendation> sportRecommendations = [];
 
-            SportModel? sport = await getSportById(sportId);
+          // for (var recommendation in recommendations) {
+          //   String sportId = recommendation['sportId'];
+          //   int matchPercentage = recommendation['matchPercentage'];
 
-            if (sport != null) {
-              sportRecommendations.add(SportRecommendation(
-                sport: sport,
-                matchPercentage: matchPercentage,
-              ));
-            }
-          }
+          //   SportModel? sport = await getSportById(sportId);
 
-          // Sort by match percentage (highest first)
-          sportRecommendations
-              .sort((a, b) => b.matchPercentage.compareTo(a.matchPercentage));
+          //   if (sport != null) {
+          //     sportRecommendations.add(SportRecommendation(
+          //       sport: sport,
+          //       matchPercentage: matchPercentage,
+          //     ));
+          //   }
+          // }
 
-          return sportRecommendations;
+          // // Sort by match percentage (highest first)
+          // sportRecommendations
+          //     .sort((a, b) => b.matchPercentage.compareTo(a.matchPercentage));
+
+          // return sportRecommendations;
         }
       }
 
@@ -99,18 +102,18 @@ class SportService {
     }
   }
 
-  // Save questionnaire response to Firestore
-  Future<void> _saveQuestionnaireResponse(
-      SportQuestionnaireResponse questionnaire) async {
-    try {
-      await _firestore
-          .collection('questionnaire_responses')
-          .add(questionnaire.toJson());
-    } catch (e) {
-      print('Error saving questionnaire response: $e');
-      // Continue even if saving fails
-    }
-  }
+  // // Save questionnaire response to Firestore
+  // Future<void> _saveQuestionnaireResponse(
+  //     SportQuestionnaireResponse questionnaire) async {
+  //   try {
+  //     await _firestore
+  //         .collection('questionnaire_responses')
+  //         .add(questionnaire.toJson());
+  //   } catch (e) {
+  //     print('Error saving questionnaire response: $e');
+  //     // Continue even if saving fails
+  //   }
+  // }
 
   // Get fallback recommendations based on interests
   Future<List<SportRecommendation>> _getFallbackRecommendations(

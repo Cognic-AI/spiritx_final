@@ -16,26 +16,26 @@ class SportRepository {
   
   // Submit questionnaire and get recommendations
   Future<List<SportRecommendation>> getRecommendations({
-    required int height,
-    required int weight,
-    required int age,
-    required String gender,
-    required int fitnessLevel,
-    required int teamPreference,
-    required int competitiveness,
-    required List<String> interests,
-    required String userId,
+    required double enduranceScore,
+    required double strengthScore,
+    required double powerScore,
+    required double speedScore,
+    required double agilityScore,
+    required double flexibilityScore,
+    required double nervousSystemScore,
+    required double durabilityScore,
+    required double handlingScore,
   }) async {
     SportQuestionnaireResponse questionnaire = SportQuestionnaireResponse(
-      height: height,
-      weight: weight,
-      age: age,
-      gender: gender,
-      fitnessLevel: fitnessLevel,
-      teamPreference: teamPreference,
-      competitiveness: competitiveness,
-      interests: interests,
-      userId: userId,
+      enduranceScore: enduranceScore,
+      strengthScore: strengthScore,
+      powerScore: powerScore,
+      speedScore: speedScore,
+      agilityScore: agilityScore,
+      flexibilityScore: flexibilityScore,
+      nervousSystemScore: nervousSystemScore,
+      durabilityScore: durabilityScore,
+      handlingScore: handlingScore,
     );
     
     return await _sportService.getRecommendations(questionnaire);

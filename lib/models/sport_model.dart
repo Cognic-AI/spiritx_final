@@ -65,39 +65,39 @@ class SportRecommendation {
 }
 
 class SportQuestionnaireResponse {
-  final int height;
-  final int weight;
-  final int age;
-  final String gender;
-  final int fitnessLevel;
-  final int teamPreference;
-  final int competitiveness;
-  final List<String> interests;
-  final String userId;
+  final double enduranceScore;
+  final double strengthScore;
+  final double powerScore;
+  final double speedScore;
+  final double agilityScore;
+  final double flexibilityScore;
+  final double nervousSystemScore;
+  final double durabilityScore;
+  final double handlingScore;
 
   SportQuestionnaireResponse({
-    required this.height,
-    required this.weight,
-    required this.age,
-    required this.gender,
-    required this.fitnessLevel,
-    required this.teamPreference,
-    required this.competitiveness,
-    required this.interests,
-    required this.userId,
+    required this.enduranceScore,
+    required this.strengthScore,
+    required this.powerScore,
+    required this.speedScore,
+    required this.agilityScore,
+    required this.flexibilityScore,
+    required this.nervousSystemScore,
+    required this.durabilityScore,
+    required this.handlingScore,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'height': height,
-      'weight': weight,
-      'age': age,
-      'gender': gender,
-      'fitnessLevel': fitnessLevel,
-      'teamPreference': teamPreference,
-      'competitiveness': competitiveness,
-      'interests': interests,
-      'userId': userId,
+      'enduranceScore': enduranceScore,
+      'strengthScore': strengthScore,
+      'powerScore': powerScore,
+      'speedScore': speedScore,
+      'agilityScore': agilityScore,
+      'flexibilityScore': flexibilityScore,
+      'nervousSystemScore': nervousSystemScore,
+      'durabilityScore': durabilityScore,
+      'handlingScore': handlingScore,
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
