@@ -8,6 +8,7 @@ import 'package:sri_lanka_sports_app/screens/features/health_centers_screen.dart
 import 'package:sri_lanka_sports_app/screens/features/notifications_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
+import 'package:sri_lanka_sports_app/screens/progress_tracking_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
 import 'package:sri_lanka_sports_app/screens/features/rtp_report_screen.dart'; // Import the new screen
 
@@ -108,6 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.track_changes),
+            label: 'Progress',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
