@@ -1350,17 +1350,17 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
     // Calculate estimated days based on injury severity and type
     if (assessment.injuryType == 'Sprain') {
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 70; // ~10 weeks
+        estimatedDays = 35; // ~5 weeks
         title = 'Mild Ankle Sprain Recovery Plan';
         description =
             'A comprehensive rehabilitation program for a mild ankle sprain, following a 4-phase approach to ensure safe return to activity.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 84; // ~12 weeks
+        estimatedDays = 49; // ~7 weeks
         title = 'Moderate Ankle Sprain Recovery Plan';
         description =
             'A structured rehabilitation program for a moderate ankle sprain, with progressive phases to ensure safe return to activity.';
       } else {
-        estimatedDays = 112; // ~16 weeks
+        estimatedDays = 70; // ~10 weeks
         title = 'Severe Ankle Sprain Recovery Plan';
         description =
             'An intensive rehabilitation program for a severe ankle sprain, requiring careful progression through healing phases.';
@@ -1374,12 +1374,36 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
         'Consider prophylactic bracing for 3-6 months after returning to sport to prevent re-injury'
       ];
 
+      // Calculate phase durations based on estimatedDays
+      int phase1Days = (estimatedDays * 0.2).round();
+      int phase2Days = (estimatedDays * 0.3).round();
+      int phase3Days = (estimatedDays * 0.3).round();
+      int phase4Days = estimatedDays -
+          (phase1Days + phase2Days + phase3Days); // Remaining days for phase 4
+
+      DateTime startDate = DateTime.now();
+      DateTime phase1EndDate = startDate.add(Duration(days: phase1Days));
+      DateTime phase2EndDate = phase1EndDate.add(Duration(days: phase2Days));
+      DateTime phase3EndDate = phase2EndDate.add(Duration(days: phase3Days));
+      DateTime phase4EndDate = phase3EndDate.add(Duration(days: phase4Days));
+
+      String startDateString =
+          '${startDate.toLocal().toIso8601String().split('T').first}';
+      String phase1EndDateString =
+          '${phase1EndDate.toLocal().toIso8601String().split('T').first}';
+      String phase2EndDateString =
+          '${phase2EndDate.toLocal().toIso8601String().split('T').first}';
+      String phase3EndDateString =
+          '${phase3EndDate.toLocal().toIso8601String().split('T').first}';
+      String phase4EndDateString =
+          '${phase4EndDate.toLocal().toIso8601String().split('T').first}';
+
       // Create phases based on the protocol
-      // Phase 1: Protection and Optimal Loading (1-2 weeks)
       phases.add(
         RehabPhase(
           name: 'Phase I: Protection and Optimal Loading',
-          duration: '1-2 weeks',
+          duration:
+              '$phase1Days days ($startDateString to $phase1EndDateString)',
           goal:
               'Decrease pain, decrease swelling, improve weight bearing, and protect healing structures',
           bracingGuidance:
@@ -1434,7 +1458,8 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
       phases.add(
         RehabPhase(
           name: 'Phase II: Intermediate/Sub-acute',
-          duration: '3-6 weeks',
+          duration:
+              '$phase2Days days ($phase1EndDateString to $phase2EndDateString)',
           goal:
               'Decrease pain, normalize gait pattern, improve ankle ROM, improve single leg stance stability, and maintain or improve proximal muscle strength',
           bracingGuidance:
@@ -1496,7 +1521,8 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
       phases.add(
         RehabPhase(
           name: 'Phase III: Late/Chronic',
-          duration: '7-10 weeks',
+          duration:
+              '$phase3Days days ($phase2EndDateString to $phase3EndDateString)',
           goal:
               'Optimize strength, optimize balance, initiate plyometric activities, and initiate return to running',
           bracingGuidance:
@@ -1552,7 +1578,8 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
       phases.add(
         RehabPhase(
           name: 'Phase IV: Return to Sport',
-          duration: '11-16 weeks',
+          duration:
+              '$phase4Days days ($phase3EndDateString to $phase4EndDateString)',
           goal:
               'Full strength of foot and ankle, improve motor control with higher level activities, and return to normal activities',
           bracingGuidance:
@@ -1603,17 +1630,17 @@ class _RtpResultsScreenState extends State<RtpResultsScreen> {
       // Similar structure for strain but with appropriate modifications
       // ...existing strain rehabilitation plan...
       if (assessment.injurySeverity == 'Mild') {
-        estimatedDays = 70; // ~10 weeks
+        estimatedDays = 35; // ~5 weeks
         title = 'Mild Ankle Strain Recovery Plan';
         description =
             'A targeted rehabilitation program for a mild ankle muscle strain, focusing on muscle healing and strengthening.';
       } else if (assessment.injurySeverity == 'Moderate') {
-        estimatedDays = 84; // ~12 weeks
+        estimatedDays = 49; // ~7 weeks
         title = 'Moderate Ankle Strain Recovery Plan';
         description =
             'A comprehensive rehabilitation program for a moderate ankle muscle strain, with gradual return to full function.';
       } else {
-        estimatedDays = 112; // ~16 weeks
+        estimatedDays = 70; // ~10 weeks
         title = 'Severe Ankle Strain Recovery Plan';
         description =
             'An extensive rehabilitation program for a severe ankle muscle strain, requiring careful progression and monitoring.';
