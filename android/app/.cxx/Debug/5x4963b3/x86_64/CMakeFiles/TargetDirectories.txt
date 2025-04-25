@@ -1,0 +1,2 @@
+/home/thimira/Desktop/Projects/spiritx_final/android/app/.cxx/Debug/5x4963b3/x86_64/CMakeFiles/edit_cache.dir
+/home/thimira/Desktop/Projects/spiritx_final/android/app/.cxx/Debug/5x4963b3/x86_64/CMakeFiles/rebuild_cache.dir
