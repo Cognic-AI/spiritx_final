@@ -6,10 +6,10 @@ import 'package:sri_lanka_sports_app/screens/features/education_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/equipment_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/health_centers_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/notifications_screen.dart';
-import 'package:sri_lanka_sports_app/screens/features/rtp_calculator_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
+import 'package:sri_lanka_sports_app/screens/features/rtp_report_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             },
                           ))
                     : _currentIndex == 2
-                        ? const RtpCalculatorScreen()
+                        ? const RtpReportScreen() // Navigate to the new RTP Report Screen
                         : ProfileScreen())),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -99,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (_currentIndex == 2) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const RtpCalculatorScreen()),
+                MaterialPageRoute(builder: (_) => const RtpReportScreen()),
               );
             }
           });
