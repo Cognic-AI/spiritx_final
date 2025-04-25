@@ -8,6 +8,7 @@ import 'package:sri_lanka_sports_app/screens/features/health_centers_screen.dart
 import 'package:sri_lanka_sports_app/screens/features/notifications_screen.dart';
 import 'package:sri_lanka_sports_app/screens/features/sport_finder_screen.dart';
 import 'package:sri_lanka_sports_app/screens/profile/profile_screen.dart';
+import 'package:sri_lanka_sports_app/screens/progress_tracking_screen.dart';
 import 'package:sri_lanka_sports_app/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -72,21 +73,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? _buildHome(
                     userModel: userModel, isSportsperson: isSportsperson)
                 : (_currentIndex == 1
-                    ? (_chatPage == "Chat"
-                        ? ChatbotScreen(
-                            sessionId: sessionId,
-                            onChatPageChanged: () =>
-                                onChatPageChanged("History"),
-                            onSessionSelected: (selectedSessionId) =>
-                                onChatSessionChanged(selectedSessionId),
-                          )
-                        : ChatSessionsScreen(
-                            onSessionSelected: (selectedSessionId) {
-                              onChatSessionChanged(selectedSessionId);
-                              onChatPageChanged("Chat");
-                            },
-                          ))
-                    : ProfileScreen())),
+                    ? (ProgressTrackingScreen())
+                    : (_currentIndex == 2
+                        ? (_chatPage == "Chat"
+                            ? ChatbotScreen(
+                                sessionId: sessionId,
+                                onChatPageChanged: () =>
+                                    onChatPageChanged("History"),
+                                onSessionSelected: (selectedSessionId) =>
+                                    onChatSessionChanged(selectedSessionId),
+                              )
+                            : ChatSessionsScreen(
+                                onSessionSelected: (selectedSessionId) {
+                                  onChatSessionChanged(selectedSessionId);
+                                  onChatPageChanged("Chat");
+                                },
+                              ))
+                        : ProfileScreen()))),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -99,6 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.track_changes),
+            label: 'Progress',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.chat),
