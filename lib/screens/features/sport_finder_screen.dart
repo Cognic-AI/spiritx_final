@@ -500,51 +500,43 @@ class _SportFinderScreenState extends State<SportFinderScreen> {
       sectionValues[question['section']]?.add(weightedValue);
     }
 
-    // Calculate average for each section
-    if (sectionValues['Endurance']!.isNotEmpty) {
-      enduranceScore = sectionValues['Endurance']!.reduce((a, b) => a + b) /
-          sectionValues['Endurance']!.length;
-    }
-
-    if (sectionValues['Strength']!.isNotEmpty) {
-      strengthScore = sectionValues['Strength']!.reduce((a, b) => a + b) /
-          sectionValues['Strength']!.length;
-    }
-
-    if (sectionValues['Power']!.isNotEmpty) {
-      powerScore = sectionValues['Power']!.reduce((a, b) => a + b) /
-          sectionValues['Power']!.length;
-    }
-
-    if (sectionValues['Speed']!.isNotEmpty) {
-      speedScore = sectionValues['Speed']!.reduce((a, b) => a + b) /
-          sectionValues['Speed']!.length;
-    }
-
-    if (sectionValues['Agility']!.isNotEmpty) {
-      agilityScore = sectionValues['Agility']!.reduce((a, b) => a + b) /
-          sectionValues['Agility']!.length;
-    }
-
-    if (sectionValues['Flexibility']!.isNotEmpty) {
-      flexibilityScore = sectionValues['Flexibility']!.reduce((a, b) => a + b) /
-          sectionValues['Flexibility']!.length;
-    }
-
-    if (sectionValues['Nervous system requirements']!.isNotEmpty) {
-      nervousSystemScore = sectionValues['Nervous system requirements']!
-              .reduce((a, b) => a + b) /
-          sectionValues['Nervous system requirements']!.length;
-    }
-
-    if (sectionValues['Durability']!.isNotEmpty) {
-      durabilityScore = sectionValues['Durability']!.reduce((a, b) => a + b) /
-          sectionValues['Durability']!.length;
-    }
-
-    if (sectionValues['Handling']!.isNotEmpty) {
-      handlingScore = sectionValues['Handling']!.reduce((a, b) => a + b) /
-          sectionValues['Handling']!.length;
+    // Calculate total score for each section and scale it between 3 to 10
+    for (var section in sectionValues.keys) {
+      if (sectionValues[section]!.isNotEmpty) {
+        double totalScore = sectionValues[section]!.reduce((a, b) => a + b);
+        double scaledScore =
+            ((totalScore / sectionValues[section]!.length) * 7) +
+                3; // Scale to 3-10
+        switch (section) {
+          case 'Endurance':
+            enduranceScore = scaledScore;
+            break;
+          case 'Strength':
+            strengthScore = scaledScore;
+            break;
+          case 'Power':
+            powerScore = scaledScore;
+            break;
+          case 'Speed':
+            speedScore = scaledScore;
+            break;
+          case 'Agility':
+            agilityScore = scaledScore;
+            break;
+          case 'Flexibility':
+            flexibilityScore = scaledScore;
+            break;
+          case 'Nervous system requirements':
+            nervousSystemScore = scaledScore;
+            break;
+          case 'Durability':
+            durabilityScore = scaledScore;
+            break;
+          case 'Handling':
+            handlingScore = scaledScore;
+            break;
+        }
+      }
     }
 
     print('Endurance Score: $enduranceScore');

@@ -90,4 +90,4 @@ def recommend():
         return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",debug=False, port=9000, threaded=True, use_reloader=False)
+    app.run(host="0.0.0.0",debug=False, port=9010, threaded=True, use_reloader=False)

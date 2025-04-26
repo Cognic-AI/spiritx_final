@@ -8,7 +8,7 @@ class SportService {
 
   // URL for the Python ML backend - use Firebase Functions URL or a proper hosted endpoint
   // For testing, we'll use a mock endpoint that always returns data
-  final String _mlApiUrl = 'http://192.168.236.180:9000/api/recommendSports';
+  final String _mlApiUrl = 'http://10.10.4.99:9010/api/recommendSports';
 
   // Get all sports
   Future<List<SportModel>> getAllSports() async {

@@ -121,7 +121,9 @@ def json_to_csv(item_name: str,request_id: str) -> None:
                     continue
 
                 currency = data.get("currency", "")
-                if currency == "Rs":
+                if "rs" in currency.lower():
+                    data["currency"] = "LKR"
+                elif "lkr" in currency.lower():
                     data["currency"] = "LKR"
 
                 currency = data.get("currency", "")
